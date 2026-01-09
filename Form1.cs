@@ -823,6 +823,20 @@ void DrawPhysicsHUD(Graphics g)
             darkMode = !darkMode;
             BackColor = darkMode ? Color.FromArgb(15,15,15) : Color.White;
             viewport.BackColor = darkMode ? Color.Black : Color.White;
+
+            // adjust status strip theme to match app theme
+            if (statusStrip != null)
+            {
+                statusStrip.BackColor = darkMode ? Color.FromArgb(30,30,30) : SystemColors.Control;
+                statusStrip.ForeColor = darkMode ? Color.White : SystemColors.ControlText;
+
+                foreach (ToolStripItem it in statusStrip.Items)
+                {
+                    it.ForeColor = darkMode ? Color.White : SystemColors.ControlText;
+                    // ensure background matches the strip so items don't show a different color
+                    it.BackColor = statusStrip.BackColor;
+                }
+            }
         }
 
         void UpdateTitle()
