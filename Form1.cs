@@ -15,11 +15,11 @@ namespace SilvuViewfinder
         bool darkMode = false;
         bool dirty = false;
 
-        DroneProject? project;
+        Project? project;
         string? projectPath;
 
         LibraryPart? dragging;
-        PlacedPart? selected;
+        PlacedInstance? selected;
         PartType? pendingAddMode = null;
         string? pendingAddName = null;
         Point mousePos;
@@ -28,8 +28,8 @@ namespace SilvuViewfinder
         TreeView projectTree = null!, libraryTree = null!;
         PictureBox viewport = null!;
 
-        // clipboard for copy/paste of placed parts
-        PlacedPart? clipboardPart = null;
+        // clipboard for copy/paste of placed instances
+        PlacedInstance? clipboardPart = null;
 
         // context menu for the project tree (layers)
         ContextMenuStrip projectContextMenu = null!;
@@ -113,9 +113,9 @@ float lastError = 0;
             projectTree = new TreeView { Dock = DockStyle.Top, Height = 260 };
             projectTree.AfterSelect += (_, e) =>
             {
-                selected = e.Node?.Tag as PlacedPart;
+                selected = e.Node?.Tag as PlacedInstance;
                 viewport.Invalidate();
-            };
+            }; 
 
             projectTree.NodeMouseClick += (s, e) =>
             {
@@ -131,20 +131,20 @@ float lastError = 0;
 
                     var infoItem = new ToolStripMenuItem("Info", null, (_,__) =>
                     {
-                        if (projectTree.SelectedNode?.Tag is PlacedPart p)
+                        if (projectTree.SelectedNode?.Tag is PlacedInstance p)
                             MessageBox.Show(GetPlacedPartInfo(p), "Part Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     });
 
                     var deleteItem = new ToolStripMenuItem("Delete", null, (_,__) =>
                     {
-                        if (projectTree.SelectedNode?.Tag is PlacedPart p)
+                        if (projectTree.SelectedNode?.Tag is PlacedInstance p)
                         {
                             if (p.Type == PartType.Frame)
                             {
                                 MessageBox.Show("Cannot delete the frame.", "Delete", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 return;
                             }
-                            project.PlacedParts.Remove(p);
+                            project.Instances.Remove(p);
                             OnProjectStructureChanged();
                         }
                     });
@@ -168,9 +168,9 @@ float lastError = 0;
 
                     var copyItem = new ToolStripMenuItem("Copy", null, (_,__) =>
                     {
-                        if (projectTree.SelectedNode?.Tag is PlacedPart p)
+                        if (projectTree.SelectedNode?.Tag is PlacedInstance p)
                         {
-                            clipboardPart = new PlacedPart { Type = p.Type, Name = p.Name, Position = p.Position, AttachedMountIndex = p.AttachedMountIndex };
+                            clipboardPart = new PlacedInstance { AssetId = p.AssetId, Type = p.Type, Position = p.Position, MountIndex = p.MountIndex };
                         }
                     });
 
@@ -178,14 +178,14 @@ float lastError = 0;
                     {
                         if (clipboardPart != null && project != null)
                         {
-                            var p = new PlacedPart
+                            var p = new PlacedInstance
                             {
+                                AssetId = clipboardPart.AssetId,
                                 Type = clipboardPart.Type,
-                                Name = clipboardPart.Name,
                                 Position = new PointF(clipboardPart.Position.X + 10, clipboardPart.Position.Y + 10),
-                                AttachedMountIndex = clipboardPart.AttachedMountIndex
+                                MountIndex = clipboardPart.MountIndex
                             };
-                            project.PlacedParts.Add(p);
+                            project.Instances.Add(p);
                             OnProjectStructureChanged();
                         }
                     });
@@ -195,13 +195,13 @@ float lastError = 0;
                     projectContextMenu.Opening += (_, __) =>
                     {
                         var node = projectTree.SelectedNode;
-                        bool hasPlaced = node?.Tag is PlacedPart;
+                        bool hasPlaced = node?.Tag is PlacedInstance;
                         infoItem.Enabled = hasPlaced;
-                        deleteItem.Enabled = hasPlaced && (node?.Tag as PlacedPart)?.Type != PartType.Frame;
+                        deleteItem.Enabled = hasPlaced && (node?.Tag as PlacedInstance)?.Type != PartType.Frame;
                         saveCustomItem.Enabled = hasPlaced;
                         copyItem.Enabled = hasPlaced;
                         pasteItem.Enabled = clipboardPart != null;
-                    };
+                    }; 
                 }
 
                 projectContextMenu.Show(projectTree, e.Location);
@@ -223,12 +223,13 @@ float lastError = 0;
 
                 if (e.Node?.Text == "X Frame")
                 {
-                    project.PlacedParts.Clear();
+                    project.Instances.Clear();
 
-                    project.PlacedParts.Add(new PlacedPart
+                    var frameAsset = AssetLibrary.FindByName("X Frame");
+                    project.Instances.Add(new PlacedInstance
                     {
+                        AssetId = frameAsset?.Id ?? "",
                         Type = PartType.Frame,
-                        Name = "X Frame",
                         Position = new PointF(viewport.Width / 2, viewport.Height / 2)
                     });
 
@@ -332,12 +333,13 @@ ToolTip partToolTip = new ToolTip();
 
                 if (dragging.Name == "X Frame")
                 {
-                    project.PlacedParts.Clear();
+                    project.Instances.Clear();
 
-                    project.PlacedParts.Add(new PlacedPart
+                    var frameAsset = AssetLibrary.FindByName("X Frame");
+                    project.Instances.Add(new PlacedInstance
                     {
+                        AssetId = frameAsset?.Id ?? "",
                         Type = PartType.Frame,
-                        Name = "X Frame",
                         Position = pt
                     });
 
@@ -389,15 +391,15 @@ ToolTip partToolTip = new ToolTip();
                 // Right-click deletes non-frame parts under the cursor
                 if (e.Button == MouseButtons.Right && project != null)
                 {
-                    var toRemove = new List<PlacedPart>();
-                    foreach (var p in project.PlacedParts)
+                    var toRemove = new List<PlacedInstance>();
+                    foreach (var p in project.Instances)
                     {
                         if (p.Type == PartType.Frame) continue;
                         var worldPos = GetPartWorldPosition(p);
                         if (Distance(worldPos, e.Location) < 20)
                             toRemove.Add(p);
                     }
-                    project.PlacedParts.RemoveAll(p => toRemove.Contains(p));
+                    project.Instances.RemoveAll(p => toRemove.Contains(p));
                     if (toRemove.Count > 0)
                     {
                         OnProjectStructureChanged();
@@ -445,16 +447,16 @@ ToolTip partToolTip = new ToolTip();
     float throttle = PID(error, dt);
     throttle = Math.Clamp(throttle, 0.0f, 1.0f);
 
-    foreach (var p in project.PlacedParts)
+    foreach (var p in project.Instances)
     {
         if (p.Type == PartType.Motor)
         {
             motorCount++;
-            totalMassKg += PhysicsDatabase.MotorMass(p.Name);
+            totalMassKg += PhysicsDatabase.MotorMass(p.AssetId);
 
-            float rpm = throttle * PhysicsDatabase.MaxRPM(p.Name);
+            float rpm = throttle * PhysicsDatabase.MaxRPM(p.AssetId);
             totalThrustN += ThrustFromRPM(rpm);
-            totalCurrentA += throttle * PhysicsDatabase.MaxCurrent(p.Name);
+            totalCurrentA += throttle * PhysicsDatabase.MaxCurrent(p.AssetId);
         }
         else if (p.Type == PartType.Frame)
         {
@@ -494,7 +496,7 @@ ToolTip partToolTip = new ToolTip();
         // ================= PROJECT =================
         void NewProject()
         {
-            project = new DroneProject { Name = "New Drone Project" };
+            project = new Project { Name = "New Drone Project" };
             projectPath = null;
             dirty = false;
 
@@ -527,7 +529,7 @@ ToolTip partToolTip = new ToolTip();
             var ofd = new OpenFileDialog { Filter = "SILVU Project|*.svproj" };
             if (ofd.ShowDialog() != DialogResult.OK) return;
 
-            project = JsonSerializer.Deserialize<DroneProject>(File.ReadAllText(ofd.FileName));
+            project = JsonSerializer.Deserialize<Project>(File.ReadAllText(ofd.FileName));
             projectPath = ofd.FileName;
             RefreshTree();
             viewport.Invalidate();
@@ -549,8 +551,8 @@ ToolTip partToolTip = new ToolTip();
             }
             else if (name == "X Frame")
             {
-                project!.PlacedParts.Clear();
-                project.PlacedParts.Add(new PlacedPart { Type = PartType.Frame, Name = "X Frame", Position = pt });
+                project!.Instances.Clear();
+                project.Instances.Add(new PlacedInstance { Type = PartType.Frame, Position = pt });
                 added = true;
             }
 
@@ -566,7 +568,7 @@ ToolTip partToolTip = new ToolTip();
             var root = new TreeNode(project.Name);
             var map = new Dictionary<string, TreeNode>();
 
-            foreach (var p in project.PlacedParts)
+            foreach (var p in project.Instances)
             {
                 string group = p.Type.ToString();
 
@@ -576,7 +578,15 @@ ToolTip partToolTip = new ToolTip();
                     root.Nodes.Add(map[group]);
                 }
 
-                map[group].Nodes.Add(new TreeNode(p.Name) { Tag = p });
+                var asset = AssetLibrary.Get(p.AssetId);
+                var display = asset?.Name ?? p.AssetId;
+                map[group].Nodes.Add(new TreeNode(display) { Tag = p });
+            }
+
+            // append counts to group headers for clarity
+            foreach (var kv in map)
+            {
+                kv.Value.Text = $"{kv.Key} ({kv.Value.Nodes.Count})";
             }
 
             root.ExpandAll();
@@ -598,7 +608,7 @@ ToolTip partToolTip = new ToolTip();
     if (frame != null)
         DrawFrame(g, frame);
 
-    foreach (var p in project.PlacedParts)
+    foreach (var p in project.Instances)
     {
         if (p.Type == PartType.Motor)
             DrawMotor(g, p);
@@ -621,7 +631,7 @@ ToolTip partToolTip = new ToolTip();
     DrawPhysicsHUD(g);
 }
 
-void DrawFrame(Graphics g, PlacedPart frame)
+void DrawFrame(Graphics g, PlacedInstance frame)
 {
     var def = FrameDB.XFrame;
 
@@ -676,10 +686,10 @@ void DrawFrame(Graphics g, PlacedPart frame)
     }
 }
 
-void DrawMotor(Graphics g, PlacedPart motor)
+void DrawMotor(Graphics g, PlacedInstance motor)
 {
     var frame = GetFrame();
-    var mount = FrameDB.XFrame.MotorMounts[motor.AttachedMountIndex];
+    var mount = FrameDB.XFrame.MotorMounts[motor.MountIndex];
 
     var pos = new PointF(
         frame!.Position.X + mount.X,
@@ -689,7 +699,7 @@ void DrawMotor(Graphics g, PlacedPart motor)
     g.FillEllipse(Brushes.Red, pos.X - 12, pos.Y - 12, 24, 24);
 }
 
-void DrawBattery(Graphics g, PlacedPart battery)
+void DrawBattery(Graphics g, PlacedInstance battery)
 {
     g.FillRectangle(Brushes.Blue,
         battery.Position.X - 30,
@@ -758,10 +768,10 @@ void DrawPhysicsHUD(Graphics g)
         }
 
         // ================= DATA =================
-        class DroneProject
+        class Project
         {
             public string Name { get; set; } = "";
-            public List<PlacedPart> PlacedParts { get; set; } = new();
+            public List<PlacedInstance> Instances { get; set; } = new();
         }
 
         enum PartType
@@ -788,6 +798,14 @@ void DrawPhysicsHUD(Graphics g)
 
             // attachment
             public int AttachedMountIndex = -1; // for motors
+        }
+
+        class PlacedInstance
+        {
+            public string AssetId = "";
+            public PartType Type;
+            public PointF Position = new PointF();
+            public int MountIndex = -1; // for motors
         }
 
         class LibraryPart
@@ -897,6 +915,9 @@ void DrawPhysicsHUD(Graphics g)
 
             public static Asset? FindByName(string name)
                 => Assets.FirstOrDefault(a => a.Name == name);
+
+            public static Asset? Get(string id)
+                => Assets.FirstOrDefault(a => a.Id == id);
         }
 
         static class FrameDB
@@ -969,12 +990,12 @@ void DrawPhysicsHUD(Graphics g)
 
         bool HasFrame()
         {
-            return project!.PlacedParts.Exists(p => p.Type == PartType.Frame);
+            return project!.Instances.Exists(p => p.Type == PartType.Frame);
         }
 
-        PlacedPart? GetFrame()
+        PlacedInstance? GetFrame()
         {
-            return project!.PlacedParts.Find(p => p.Type == PartType.Frame);
+            return project!.Instances.Find(p => p.Type == PartType.Frame);
         }
 
         float Distance(PointF a, PointF b)
@@ -1004,20 +1025,22 @@ void DrawPhysicsHUD(Graphics g)
             return name;
         }
 
-        string GetPlacedPartInfo(PlacedPart p)
+        string GetPlacedPartInfo(PlacedInstance p)
         {
             var sb = new System.Text.StringBuilder();
-            sb.AppendLine($"{p.Type} - {p.Name}");
+            var asset = AssetLibrary.Get(p.AssetId);
+            var assetName = asset?.Name ?? p.AssetId;
+            sb.AppendLine($"{p.Type} - {assetName}");
             if (p.Type == PartType.Motor)
             {
-                sb.AppendLine($"Mount: {p.AttachedMountIndex}");
-                sb.AppendLine($"Thrust: {PhysicsDatabase.GetMaxThrust(p.Name)} N");
-                sb.AppendLine($"Hover Current: {PhysicsDatabase.GetCurrentDraw(p.Name)} A");
-                sb.AppendLine($"Mass: {PhysicsDatabase.MotorMass(p.Name)} kg");
+                sb.AppendLine($"Mount: {p.MountIndex}");
+                sb.AppendLine($"Thrust: {PhysicsDatabase.GetMaxThrust(assetName)} N");
+                sb.AppendLine($"Hover Current: {PhysicsDatabase.GetCurrentDraw(assetName)} A");
+                sb.AppendLine($"Mass: {PhysicsDatabase.MotorMass(assetName)} kg");
             }
             else if (p.Type == PartType.Battery)
             {
-                var voltage = p.Name == "4S LiPo" ? "14.8V" : p.Name == "6S LiPo" ? "22.2V" : "";
+                var voltage = assetName.Contains("4S") ? "14.8V" : assetName.Contains("6S") ? "22.2V" : "";
                 sb.AppendLine($"Voltage: {voltage}");
                 sb.AppendLine($"Mass: {PhysicsDatabase.BatteryMass()} kg");
             }
@@ -1057,14 +1080,14 @@ void DrawPhysicsHUD(Graphics g)
             if (mount == -1) return false;
 
             // Prevent placing multiple motors on the same mount
-            if (project!.PlacedParts.Any(p => p.Type == PartType.Motor && p.AttachedMountIndex == mount))
+            if (project!.Instances.Any(p => p.Type == PartType.Motor && p.MountIndex == mount))
                 return false;
 
-            project!.PlacedParts.Add(new PlacedPart
+            project!.Instances.Add(new PlacedInstance
             {
+                AssetId = AssetLibrary.FindByName(name)?.Id ?? name,
                 Type = PartType.Motor,
-                Name = name,
-                AttachedMountIndex = mount
+                MountIndex = mount
             });
 
             return true;
@@ -1086,13 +1109,13 @@ void DrawPhysicsHUD(Graphics g)
             if (!worldBay.Contains(mousePos)) return false;
 
             // Prevent multiple batteries on the same frame
-            if (project!.PlacedParts.Any(p => p.Type == PartType.Battery))
+            if (project!.Instances.Any(p => p.Type == PartType.Battery))
                 return false;
 
-            project!.PlacedParts.Add(new PlacedPart
+            project!.Instances.Add(new PlacedInstance
             {
+                AssetId = AssetLibrary.FindByName(name)?.Id ?? name,
                 Type = PartType.Battery,
-                Name = name,
                 Position = frame.Position
             });
 
@@ -1101,16 +1124,16 @@ void DrawPhysicsHUD(Graphics g)
 
 
 
-        PointF GetPartWorldPosition(PlacedPart p)
+        PointF GetPartWorldPosition(PlacedInstance p)
         {
             if (p.Type == PartType.Motor)
             {
                 var frame = GetFrame();
                 if (frame == null) return p.Position;
-                if (p.AttachedMountIndex < 0 || p.AttachedMountIndex >= FrameDB.XFrame.MotorMounts.Length)
+                if (p.MountIndex < 0 || p.MountIndex >= FrameDB.XFrame.MotorMounts.Length)
                     return p.Position;
 
-                var mount = FrameDB.XFrame.MotorMounts[p.AttachedMountIndex];
+                var mount = FrameDB.XFrame.MotorMounts[p.MountIndex];
                 return new PointF(frame.Position.X + mount.X, frame.Position.Y + mount.Y);
             }
 
