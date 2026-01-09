@@ -145,7 +145,9 @@ float lastError = 0;
                                 return;
                             }
                             project.PlacedParts.Remove(p);
-                            OnProjectStructureChanged();
+                            ResetPhysicsState();
+                            RefreshTree();
+                            viewport.Invalidate();
                         }
                     });
 
@@ -186,7 +188,10 @@ float lastError = 0;
                                 AttachedMountIndex = clipboardPart.AttachedMountIndex
                             };
                             project.PlacedParts.Add(p);
-                            OnProjectStructureChanged();
+                            ResetPhysicsState();
+                            dirty = true;
+                            RefreshTree();
+                            viewport.Invalidate();
                         }
                     });
 
@@ -221,7 +226,7 @@ float lastError = 0;
             {
                 if (project == null) return;
 
-                if (e.Node?.Text == "X Frame")
+                if (e.Node.Text == "X Frame")
                 {
                     project.PlacedParts.Clear();
 
@@ -232,23 +237,25 @@ float lastError = 0;
                         Position = new PointF(viewport.Width / 2, viewport.Height / 2)
                     });
 
-                    OnProjectStructureChanged();
+                    ResetPhysicsState();
+                    RefreshTree();
+                    viewport.Invalidate();
                     return; 
                 }
 
-                if (e.Node?.Parent?.Text == "Motors")
+                if (e.Node.Parent?.Text == "Motors")
                 {
                     // next click in viewport places motor
                     pendingAddMode = PartType.Motor;
-                    pendingAddName = e.Node?.Text;
+                    pendingAddName = e.Node.Text;
                     viewport.Cursor = Cursors.Cross;
                     return;
                 }
 
-                if (e.Node?.Parent?.Text == "Batteries")
+                if (e.Node.Parent?.Text == "Batteries")
                 {
                     pendingAddMode = PartType.Battery;
-                    pendingAddName = e.Node?.Text;
+                    pendingAddName = e.Node.Text;
                     viewport.Cursor = Cursors.Cross;
                     return;
                 }
@@ -341,40 +348,16 @@ ToolTip partToolTip = new ToolTip();
                         Position = pt
                     });
 
-                    OnProjectStructureChanged();
-
-                    // clear drag/add state
-                    dragging = null;
-                    pendingAddMode = null;
-                    pendingAddName = null;
-                    viewport.Cursor = Cursors.Default;
-
-                    return;
+                    ResetPhysicsState();
+                    RefreshTree();
+                    viewport.Invalidate();
+                    return; 
                 }
-
-                bool added = false;
 
                 if (dragging.Category == "Motors")
-                {
                     AddMotor(pt, dragging.Name);
-                    added = true;
-                }
                 else if (dragging.Category == "Batteries")
-                {
                     AddBattery(pt, dragging.Name);
-                    added = true;
-                }
-
-                if (added)
-                {
-                    OnProjectStructureChanged();
-
-                    // clear drag/add state
-                    dragging = null;
-                    pendingAddMode = null;
-                    pendingAddName = null;
-                    viewport.Cursor = Cursors.Default;
-                }
             };
 
             center.Controls.Add(viewport);
@@ -400,10 +383,8 @@ ToolTip partToolTip = new ToolTip();
                             toRemove.Add(p);
                     }
                     project.PlacedParts.RemoveAll(p => toRemove.Contains(p));
-                    if (toRemove.Count > 0)
-                    {
-                        OnProjectStructureChanged();
-                    }
+                    if (toRemove.Count > 0) ResetPhysicsState();
+                    viewport.Invalidate();
                     return; 
                 }
 
@@ -416,7 +397,8 @@ ToolTip partToolTip = new ToolTip();
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        OnProjectStructureChanged();
+                        RefreshTree();
+                        viewport.Invalidate();
                         return;
                     }
                     else if (pendingAddMode == PartType.Battery)
@@ -425,7 +407,8 @@ ToolTip partToolTip = new ToolTip();
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        OnProjectStructureChanged();
+                        RefreshTree();
+                        viewport.Invalidate();
                         return;
                     }
                 }
@@ -539,27 +522,17 @@ ToolTip partToolTip = new ToolTip();
         void AddPart(string cat, string name, int x, int y)
         {
             var pt = new PointF(x, y);
-            bool added = false;
-
-            if (cat == "Motors")
-            {
-                AddMotor(pt, name);
-                added = true;
-            }
-            else if (cat == "Batteries")
-            {
-                AddBattery(pt, name);
-                added = true;
-            }
+            if (cat == "Motors") AddMotor(pt, name);
+            else if (cat == "Batteries") AddBattery(pt, name);
             else if (name == "X Frame")
             {
                 project!.PlacedParts.Clear();
                 project.PlacedParts.Add(new PlacedPart { Type = PartType.Frame, Name = "X Frame", Position = pt });
-                added = true;
+                ResetPhysicsState();
+                dirty = true;
+                RefreshTree();
+                viewport.Invalidate();
             }
-
-            if (added)
-                OnProjectStructureChanged();
         }
 
         void RefreshTree()
@@ -739,14 +712,6 @@ void DrawPhysicsHUD(Graphics g)
             libraryTree.Nodes.Add(batteries);
             libraryTree.Nodes.Add(frames);
         }
-        void OnProjectStructureChanged()
-{
-    ResetPhysicsState();
-    dirty = true;
-    RefreshTree();
-    viewport.Invalidate();
-}
-
 
         // ================= UX =================
         void ToggleDark()
@@ -963,6 +928,10 @@ void DrawPhysicsHUD(Graphics g)
                 Name = name,
                 AttachedMountIndex = mount
             });
+
+            ResetPhysicsState();
+            dirty = true;
+            viewport.Invalidate();
         }
 
         void AddBattery(PointF mousePos, string name)
@@ -986,6 +955,10 @@ void DrawPhysicsHUD(Graphics g)
                 Name = name,
                 Position = frame.Position
             });
+
+            ResetPhysicsState();
+            dirty = true;
+            viewport.Invalidate();
         }
 
 
