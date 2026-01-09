@@ -7,7 +7,6 @@ using System.IO;
 using System.Text.Json;
 using System.Diagnostics;
 using System.Windows.Forms;
-using System.Diagnostics;
 
 namespace SilvuViewfinder
 {
@@ -130,6 +129,42 @@ float lastError = 0;
             var center = new Panel { Dock = DockStyle.Fill };
             Controls.Add(center);
             Controls.Add(left);
+
+            var xFrame = new FrameAsset
+{
+    Id = "frame_x_5inch",
+    Name = "5-inch X Frame",
+    Category = "Frames",
+    WheelbaseMm = 225,
+    ArmCount = 4,
+    ArmThicknessMm = 5,
+    MassKg = 0.15f
+};
+
+xFrame.Mounts.AddRange(new[]
+{
+    // Motors
+    new MountPoint { Type = MountType.Motor, Position = new PointF(-120,-120), Size = new SizeF(20,20), Label="M1" },
+    new MountPoint { Type = MountType.Motor, Position = new PointF(120,-120),  Size = new SizeF(20,20), Label="M2" },
+    new MountPoint { Type = MountType.Motor, Position = new PointF(120,120),   Size = new SizeF(20,20), Label="M3" },
+    new MountPoint { Type = MountType.Motor, Position = new PointF(-120,120),  Size = new SizeF(20,20), Label="M4" },
+
+    // ESCs (one per arm)
+    new MountPoint { Type = MountType.ESC, Position = new PointF(-80,-80), Size=new SizeF(25,40), Label="ESC1" },
+    new MountPoint { Type = MountType.ESC, Position = new PointF(80,-80),  Size=new SizeF(25,40), Label="ESC2" },
+    new MountPoint { Type = MountType.ESC, Position = new PointF(80,80),   Size=new SizeF(25,40), Label="ESC3" },
+    new MountPoint { Type = MountType.ESC, Position = new PointF(-80,80),  Size=new SizeF(25,40), Label="ESC4" },
+
+    // FC stack (center)
+    new MountPoint { Type = MountType.FlightController, Position = new PointF(0,0), Size=new SizeF(30,30), Label="FC Stack" },
+
+    // Receiver
+    new MountPoint { Type = MountType.Receiver, Position = new PointF(0,40), Size=new SizeF(20,20), Label="RX" },
+
+    // Battery
+    new MountPoint { Type = MountType.Battery, Position = new PointF(0,-40), Size=new SizeF(40,20), Label="Battery Tray" }
+});
+
 
             // STATUS STRIP
             statusStrip = new StatusStrip();
@@ -1020,12 +1055,30 @@ void DrawPhysicsHUD(Graphics g)
             public List<PlacedInstance> Instances { get; set; } = new();
         }
 
+
+
+
+
         enum PartType
         {
             Frame,
             Motor,
             Battery
         }
+        enum MountType
+{
+    None,
+    Motor,
+    Battery,
+    ESC,
+    FlightController,
+    Receiver,
+    GPS,
+    Camera,
+    VTX,
+    Propeller
+}
+
 
         class FrameDefinition
         {
@@ -1033,6 +1086,16 @@ void DrawPhysicsHUD(Graphics g)
             public RectangleF BatteryBay = new RectangleF();
             public SizeF Size = new SizeF();
         }
+
+        class MountPoint
+{
+    public MountType Type;
+    public PointF Position;        // relative to frame center
+    public SizeF Size;             // mounting area
+    public float RotationDeg;      // orientation
+    public string? Label;           // e.g. "ESC1", "FC Stack"
+}
+
 
         class PlacedPart
         {
@@ -1045,6 +1108,10 @@ void DrawPhysicsHUD(Graphics g)
             // attachment
             public int AttachedMountIndex = -1; // for motors
         }
+
+        // FrameAsset consolidated further down (duplicate removed)
+
+
 
         class PlacedInstance
         {
@@ -1080,10 +1147,13 @@ void DrawPhysicsHUD(Graphics g)
             public float MassKg { get; set; }
 
             public AssetMeta Meta { get; set; } = new();
+
+            public abstract MountType RequiredMount { get; }
         }
 
         class MotorAsset : Asset
         {
+            public override MountType RequiredMount => MountType.Motor;
             public int KV { get; set; }
             public float MaxRPM { get; set; }
             public float MaxCurrent { get; set; }
@@ -1096,6 +1166,7 @@ void DrawPhysicsHUD(Graphics g)
 
         class BatteryAsset : Asset
         {
+            public override MountType RequiredMount => MountType.Battery;
             public int Cells { get; set; }
             public float VoltageNominal { get; set; }
             public float CapacityAh { get; set; }
@@ -1104,6 +1175,7 @@ void DrawPhysicsHUD(Graphics g)
 
         class ESCAsset : Asset
         {
+            public override MountType RequiredMount => MountType.ESC;
             public float ContinuousCurrent { get; set; }
             public float BurstCurrent { get; set; }
             public bool SupportsDShot { get; set; }
@@ -1112,6 +1184,7 @@ void DrawPhysicsHUD(Graphics g)
 
         class FlightControllerAsset : Asset
         {
+            public override MountType RequiredMount => MountType.FlightController;
             public string MCU { get; set; } = "";
             public int UARTCount { get; set; }
             public bool HasOSD { get; set; }
@@ -1121,6 +1194,7 @@ void DrawPhysicsHUD(Graphics g)
 
         class ReceiverAsset : Asset
         {
+            public override MountType RequiredMount => MountType.Receiver;
             public string Protocol { get; set; } = ""; // SBUS, CRSF, ELRS
             public float FrequencyGHz { get; set; }
             public bool Telemetry { get; set; }
@@ -1128,6 +1202,7 @@ void DrawPhysicsHUD(Graphics g)
 
         class PropellerAsset : Asset
         {
+            public override MountType RequiredMount => MountType.Propeller;
             public float DiameterInch { get; set; }
             public float Pitch { get; set; }
             public int BladeCount { get; set; }
@@ -1139,6 +1214,8 @@ void DrawPhysicsHUD(Graphics g)
             public int ArmCount { get; set; }
             public float ArmThicknessMm { get; set; }
             public FrameDefinition? Geometry { get; set; }
+            public List<MountPoint> Mounts { get; set; } = new();
+            public override MountType RequiredMount => MountType.None;
         }
 
         static class AssetIO
@@ -1249,6 +1326,32 @@ void DrawPhysicsHUD(Graphics g)
                     WheelbaseMm = 300,
                     Description = "Standard 5-inch X frame"
                 };
+
+                // Add realistic mount points for the default frame
+                f.Mounts.AddRange(new[]
+                {
+                    // Motors
+                    new MountPoint { Type = MountType.Motor, Position = new PointF(-120,-120), Size = new SizeF(20,20), Label = "M1" },
+                    new MountPoint { Type = MountType.Motor, Position = new PointF(120,-120),  Size = new SizeF(20,20), Label = "M2" },
+                    new MountPoint { Type = MountType.Motor, Position = new PointF(120,120),   Size = new SizeF(20,20), Label = "M3" },
+                    new MountPoint { Type = MountType.Motor, Position = new PointF(-120,120),  Size = new SizeF(20,20), Label = "M4" },
+
+                    // ESCs (one per arm)
+                    new MountPoint { Type = MountType.ESC, Position = new PointF(-80,-80), Size=new SizeF(25,40), Label = "ESC1" },
+                    new MountPoint { Type = MountType.ESC, Position = new PointF(80,-80),  Size=new SizeF(25,40), Label = "ESC2" },
+                    new MountPoint { Type = MountType.ESC, Position = new PointF(80,80),   Size=new SizeF(25,40), Label = "ESC3" },
+                    new MountPoint { Type = MountType.ESC, Position = new PointF(-80,80),  Size=new SizeF(25,40), Label = "ESC4" },
+
+                    // FC stack (center)
+                    new MountPoint { Type = MountType.FlightController, Position = new PointF(0,0), Size=new SizeF(30,30), Label = "FC Stack" },
+
+                    // Receiver
+                    new MountPoint { Type = MountType.Receiver, Position = new PointF(0,40), Size=new SizeF(20,20), Label = "RX" },
+
+                    // Battery
+                    new MountPoint { Type = MountType.Battery, Position = new PointF(0,-40), Size=new SizeF(40,20), Label = "Battery Tray" }
+                });
+
                 Assets[f.Id] = f;
             }
 
@@ -1517,6 +1620,75 @@ void DrawPhysicsHUD(Graphics g)
 
             return true;
         }
+        bool TryPlaceAsset(Asset asset, PointF mouse)
+{
+    var frame = GetFrameAsset();
+    if (frame == null) return false;
+
+    var compatibleMounts = frame.Mounts
+        .Where(m => m.Type == asset.RequiredMount)
+        .ToList();
+
+    foreach (var mount in compatibleMounts)
+    {
+        var worldPos = FrameToWorld(mount.Position);
+        if (Distance(mouse, worldPos) < mount.Size.Width)
+        {
+            PlaceInstance(asset, mount);
+            return true;
+        }
+    }
+    return false;
+}
+
+        FrameAsset? GetFrameAsset()
+        {
+            var framePlaced = GetFrame();
+            if (framePlaced == null) return null;
+            return AssetLibrary.Get(framePlaced.AssetId) as FrameAsset;
+        }
+
+        PointF FrameToWorld(PointF relPos)
+        {
+            var frame = GetFrame();
+            if (frame == null) return relPos;
+            return new PointF(frame.Position.X + relPos.X, frame.Position.Y + relPos.Y);
+        }
+
+        void PlaceInstance(Asset asset, MountPoint mount)
+        {
+            if (project == null) return;
+            var framePlaced = GetFrame();
+            if (framePlaced == null) return;
+            var frameAsset = AssetLibrary.Get(framePlaced.AssetId) as FrameAsset;
+            if (frameAsset == null) return;
+            int mountIndex = frameAsset.Mounts.IndexOf(mount);
+
+            if (asset.RequiredMount == MountType.Motor)
+            {
+                if (project.Instances.Any(p => p.Type == PartType.Motor && p.MountIndex == mountIndex)) return;
+                project.Instances.Add(new PlacedInstance
+                {
+                    AssetId = asset.Id,
+                    Type = PartType.Motor,
+                    MountIndex = mountIndex
+                });
+            }
+            else if (asset.RequiredMount == MountType.Battery)
+            {
+                if (project.Instances.Any(p => p.Type == PartType.Battery)) return;
+                project.Instances.Add(new PlacedInstance
+                {
+                    AssetId = asset.Id,
+                    Type = PartType.Battery,
+                    Position = FrameToWorld(mount.Position)
+                });
+            }
+
+            OnProjectStructureChanged();
+        }
+
+        
 
         bool AddBattery(PointF mousePos, string name)
         {

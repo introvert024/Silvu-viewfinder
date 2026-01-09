@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Silvuviewfinder")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c79c048d09d7edcc0d3bb72b9c64d8587b5ff6bf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a4df98274e7a92275763a9214c3cd153272ab487")]
 [assembly: System.Reflection.AssemblyProductAttribute("Silvuviewfinder")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Silvuviewfinder")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
