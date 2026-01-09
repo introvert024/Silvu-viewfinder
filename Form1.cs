@@ -5,7 +5,9 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.IO;
 using System.Text.Json;
+using System.Diagnostics;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace SilvuViewfinder
 {
@@ -28,11 +30,17 @@ namespace SilvuViewfinder
         TreeView projectTree = null!, libraryTree = null!;
         PictureBox viewport = null!;
 
+        // Status bar
+        StatusStrip statusStrip = null!;
+        ToolStripStatusLabel statusLabel = null!, frameStatus = null!, motorsStatus = null!, batteryStatus = null!, errorsStatus = null!;
+
         // clipboard for copy/paste of placed instances
         PlacedInstance? clipboardPart = null;
 
         // context menu for the project tree (layers)
         ContextMenuStrip projectContextMenu = null!;
+        // context menu for the library tree
+        ContextMenuStrip libraryContextMenu = null!;
 
 // ================= PID =================
 float altitude = 0.0f;
@@ -99,8 +107,22 @@ float lastError = 0;
             var tools = new ToolStripMenuItem("Tools");
             tools.DropDownItems.Add("Toggle Dark Mode", null, (_,__) => ToggleDark());
 
+            // ASSETS menu
+            var assetsMenu = new ToolStripMenuItem("Assets");
+            assetsMenu.DropDownItems.Add("Import Asset...", null, (_,__) => ImportAsset());
+            var newAsset = new ToolStripMenuItem("New Asset");
+            newAsset.DropDownItems.Add("Motor", null, (_,__) => CreateNewAsset("Motors"));
+            newAsset.DropDownItems.Add("Battery", null, (_,__) => CreateNewAsset("Batteries"));
+            newAsset.DropDownItems.Add("ESC", null, (_,__) => CreateNewAsset("ESC"));
+            newAsset.DropDownItems.Add("Frame", null, (_,__) => CreateNewAsset("Frames"));
+            newAsset.DropDownItems.Add("FC", null, (_,__) => CreateNewAsset("FC"));
+            newAsset.DropDownItems.Add("Props", null, (_,__) => CreateNewAsset("Props"));
+            newAsset.DropDownItems.Add("Receivers", null, (_,__) => CreateNewAsset("Receivers"));
+            assetsMenu.DropDownItems.Add(newAsset);
+
             menu.Items.Add(proj);
             menu.Items.Add(tools);
+            menu.Items.Add(assetsMenu);
             Controls.Add(menu);
 
             // LAYOUT
@@ -108,6 +130,17 @@ float lastError = 0;
             var center = new Panel { Dock = DockStyle.Fill };
             Controls.Add(center);
             Controls.Add(left);
+
+            // STATUS STRIP
+            statusStrip = new StatusStrip();
+            statusLabel = new ToolStripStatusLabel("Ready");
+            frameStatus = new ToolStripStatusLabel(" | Frame: 0");
+            motorsStatus = new ToolStripStatusLabel(" | Motors: 0");
+            batteryStatus = new ToolStripStatusLabel(" | Battery: None");
+            errorsStatus = new ToolStripStatusLabel(" | Errors: 0");
+            statusStrip.Items.AddRange(new ToolStripItem[] { statusLabel, frameStatus, motorsStatus, batteryStatus, errorsStatus });
+            Controls.Add(statusStrip);
+            UpdateStatusBar();
 
             // PROJECT TREE
             projectTree = new TreeView { Dock = DockStyle.Top, Height = 260 };
@@ -253,6 +286,32 @@ float lastError = 0;
                     viewport.Cursor = Cursors.Cross;
                     return;
                 }
+            };
+
+            libraryTree.NodeMouseClick += (s, e) =>
+            {
+                if (e.Button != MouseButtons.Right) return;
+                libraryTree.SelectedNode = e.Node;
+                if (e.Node == null || e.Node.Parent == null) return; // must be an asset entry
+                var asset = e.Node.Tag as Asset;
+                if (asset == null) return;
+
+                if (libraryContextMenu == null)
+                {
+                    libraryContextMenu = new ContextMenuStrip();
+                    libraryContextMenu.Items.Add(new ToolStripMenuItem("Edit", null, (_,__) => { if (libraryTree.SelectedNode?.Tag is Asset a) OpenAssetEditor(a); }));
+                    libraryContextMenu.Items.Add(new ToolStripMenuItem("Duplicate", null, (_,__) => { if (libraryTree.SelectedNode?.Tag is Asset a) { var copy = CloneAsset(a); copy.Name += " Copy"; asset.Meta.IsCustom = true; AssetLibrary.SaveAssetToUserDir(copy); AssetLibrary.LoadAll(AssetLibrary.UserAssetRoot); BuildLibrary(); } }));
+                    libraryContextMenu.Items.Add(new ToolStripMenuItem("Export...", null, (_,__) => { if (libraryTree.SelectedNode?.Tag is Asset a) ExportAsset(a); }));
+                    libraryContextMenu.Items.Add(new ToolStripMenuItem("Delete", null, (_,__) => { if (libraryTree.SelectedNode?.Tag is Asset a) { DeleteAsset(a); } }));
+                    libraryContextMenu.Items.Add(new ToolStripMenuItem("Reveal in Explorer", null, (_,__) => { if (libraryTree.SelectedNode?.Tag is Asset a) RevealInExplorer(a); }));
+                }
+
+                // enable/disable delete depending on whether asset is custom and has a path
+                var deleteItem = libraryContextMenu.Items.Cast<ToolStripItem>().FirstOrDefault(i => i.Text == "Delete") as ToolStripMenuItem;
+                if (deleteItem != null && libraryTree.SelectedNode?.Tag is Asset selectedAsset)
+                    deleteItem.Enabled = selectedAsset.Meta.IsCustom && AssetLibrary.Paths.ContainsKey(selectedAsset.Id);
+
+                libraryContextMenu.Show(libraryTree, e.Location);
             };
 
             BuildLibrary();
@@ -731,15 +790,18 @@ void DrawPhysicsHUD(Graphics g)
         {
             libraryTree.Nodes.Clear();
 
+            // built-in assets
             AssetLibrary.LoadDefaults();
+            // user assets on disk
+            AssetLibrary.LoadAll(AssetLibrary.UserAssetRoot);
 
-            var groups = AssetLibrary.Assets.GroupBy(a => a.Category).OrderBy(g => g.Key);
-            foreach (var g in groups)
+            var categories = AssetLibrary.Assets.Values.Select(a => a.Category).Distinct().OrderBy(c => c);
+            foreach (var cat in categories)
             {
-                var parent = new TreeNode(g.Key);
-                foreach (var a in g)
+                var parent = new TreeNode(cat);
+                foreach (var a in AssetLibrary.GetByCategory(cat))
                 {
-                    var node = new TreeNode(a.Name);
+                    var node = new TreeNode(a.Name) { Tag = a };
                     parent.Nodes.Add(node);
                 }
                 libraryTree.Nodes.Add(parent);
@@ -751,6 +813,7 @@ void DrawPhysicsHUD(Graphics g)
     dirty = true;
     RefreshTree();
     viewport.Invalidate();
+    UpdateStatusBar();
 }
 
 
@@ -765,6 +828,175 @@ void DrawPhysicsHUD(Graphics g)
         void UpdateTitle()
         {
             Text = $"SILVU VIEWFINDER — {project?.Name}{(dirty ? " *" : "")}";
+        }
+
+        void UpdateStatusBar()
+        {
+            if (statusLabel == null) return;
+
+            if (project == null)
+            {
+                statusLabel.Text = "Ready";
+                frameStatus.Text = " | Frame: 0";
+                motorsStatus.Text = " | Motors: 0";
+                batteryStatus.Text = " | Battery: None";
+                errorsStatus.Text = " | Errors: 0";
+                return;
+            }
+
+            int frames = project.Instances.Count(i => i.Type == PartType.Frame);
+            int motors = project.Instances.Count(i => i.Type == PartType.Motor);
+            var batteryInst = project.Instances.FirstOrDefault(i => i.Type == PartType.Battery);
+
+            string batteryText = "None";
+            if (batteryInst != null)
+            {
+                var batAsset = AssetLibrary.Get(batteryInst.AssetId) as BatteryAsset;
+                if (batAsset != null && batAsset.VoltageNominal > 0)
+                {
+                    int s = batAsset.Cells > 0 ? batAsset.Cells : (int)Math.Round(batAsset.VoltageNominal / 3.7f);
+                    batteryText = $"{s}S";
+                }
+                else
+                {
+                    batteryText = "Unknown";
+                }
+            }
+
+            int errors = 0;
+
+            // quick checks
+            if (frames == 0) errors++;
+            if (motors == 0) errors++;
+            if (batteryInst == null) errors++;
+
+            // estimate thrust vs weight
+            float estMass = 0f;
+            float estThrust = 0f;
+            foreach (var p in project.Instances)
+            {
+                if (p.Type == PartType.Motor)
+                {
+                    estMass += PhysicsDatabase.MotorMass(p.AssetId);
+                    float maxr = PhysicsDatabase.MaxRPM(p.AssetId);
+                    estThrust += ThrustFromRPM(maxr);
+                }
+                else if (p.Type == PartType.Frame)
+                {
+                    estMass += PhysicsDatabase.FrameMass();
+                }
+                else if (p.Type == PartType.Battery)
+                {
+                    estMass += PhysicsDatabase.BatteryMass();
+                }
+            }
+
+            if (estThrust < estMass * GRAVITY) errors++;
+
+            statusLabel.Text = "Ready";
+            frameStatus.Text = $" | Frame: {frames}";
+            motorsStatus.Text = $" | Motors: {motors}";
+            batteryStatus.Text = $" | Battery: {batteryText}";
+            errorsStatus.Text = $" | Errors: {errors}";
+        }
+
+        // ===== Asset management & editor =====
+
+        void ImportAsset()
+        {
+            var ofd = new OpenFileDialog
+            {
+                Filter = "Silvu Asset (*.svasset)|*.svasset"
+            };
+
+            if (ofd.ShowDialog() != DialogResult.OK) return;
+
+            var asset = AssetIO.LoadAsset(ofd.FileName);
+
+            string targetDir = Path.Combine(AssetLibrary.UserAssetRoot, asset.Category);
+            Directory.CreateDirectory(targetDir);
+            File.Copy(ofd.FileName, Path.Combine(targetDir, Path.GetFileName(ofd.FileName)), overwrite: true);
+
+            AssetLibrary.LoadAll(AssetLibrary.UserAssetRoot);
+            BuildLibrary();
+        }
+
+        void CreateNewAsset(string category)
+        {
+            Asset asset = category switch
+            {
+                "Motors" => new MotorAsset { Name = "New Motor", Category = category, MaxRPM = 20000, MaxCurrent = 30, MassKg = 0.03f },
+                "Batteries" => new BatteryAsset { Name = "New Battery", Category = category, Cells = 4, VoltageNominal = 14.8f, CapacityAh = 1.3f },
+                "ESC" => new ESCAsset { Name = "New ESC", Category = category },
+                "Frames" => new FrameAsset { Name = "New Frame", Category = category },
+                "FC" => new FlightControllerAsset { Name = "New FC", Category = category },
+                "Props" => new PropellerAsset { Name = "New Prop", Category = category },
+                "Receivers" => new ReceiverAsset { Name = "New Receiver", Category = category },
+                _ => new MotorAsset { Name = "New Motor", Category = "Motors" }
+            };
+
+            asset.Meta.IsCustom = true;
+            OpenAssetEditor(asset, saveAfter => {
+                if (saveAfter) { AssetLibrary.SaveAssetToUserDir(asset); AssetLibrary.LoadAll(AssetLibrary.UserAssetRoot); BuildLibrary(); }
+            });
+        }
+
+        void OpenAssetEditor(Asset asset, Action<bool>? onClose = null)
+        {
+            var f = new AssetEditorForm(asset);
+            var res = f.ShowDialog(this);
+            if (res == DialogResult.OK)
+            {
+                AssetLibrary.SaveAssetToUserDir(asset);
+                AssetLibrary.LoadAll(AssetLibrary.UserAssetRoot);
+                BuildLibrary();
+                onClose?.Invoke(true);
+            }
+            else
+            {
+                onClose?.Invoke(false);
+            }
+        }
+
+        void ExportAsset(Asset a)
+        {
+            var sfd = new SaveFileDialog { Filter = "Silvu Asset (*.svasset)|*.svasset", FileName = a.Name + ".svasset" };
+            if (sfd.ShowDialog() != DialogResult.OK) return;
+            AssetIO.SaveAsset(a, sfd.FileName);
+        }
+
+        void DeleteAsset(Asset a)
+        {
+            if (!a.Meta.IsCustom || !AssetLibrary.Paths.ContainsKey(a.Id))
+            {
+                MessageBox.Show("Can only delete custom assets.", "Delete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (MessageBox.Show($"Delete asset '{a.Name}'?", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+
+            AssetLibrary.DeleteAsset(a);
+            BuildLibrary();
+        }
+
+        void RevealInExplorer(Asset a)
+        {
+            if (!AssetLibrary.Paths.TryGetValue(a.Id, out var path) || !File.Exists(path)) return;
+            try
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{path}\"") { UseShellExecute = true });
+            }
+            catch { }
+        }
+
+        Asset CloneAsset(Asset a)
+        {
+            var json = JsonSerializer.Serialize(a, a.GetType());
+            var clone = (Asset)JsonSerializer.Deserialize(json, a.GetType())!;
+            clone.Id = Guid.NewGuid().ToString();
+            clone.Meta = new AssetMeta { IsCustom = true, Created = DateTime.Now, Modified = DateTime.Now };
+            return clone;
         }
 
         // ================= DATA =================
@@ -815,109 +1047,288 @@ void DrawPhysicsHUD(Graphics g)
             public string AssetId { get; set; } = ""; // optional bridge to AssetLibrary
         }
 
+        class AssetMeta
+        {
+            public string Version { get; set; } = "1.0";
+            public DateTime Created { get; set; } = DateTime.Now;
+            public DateTime Modified { get; set; } = DateTime.Now;
+            public bool IsCustom { get; set; } = true;
+        }
+
         abstract class Asset
         {
-            public string Id = Guid.NewGuid().ToString();
-            public string Name = "";
-            public string Category = "";
-            public string Description = "";
-            public Image? Icon;
+            public string Id { get; set; } = Guid.NewGuid().ToString();
+            public string Name { get; set; } = "";
+            public string Category { get; set; } = ""; // Motors, ESC, FC, Frame, etc
+            public string Manufacturer { get; set; } = "";
+            public string Description { get; set; } = "";
+
+            public float MassKg { get; set; }
+
+            public AssetMeta Meta { get; set; } = new();
         }
 
         class MotorAsset : Asset
         {
-            public float MaxRPM;
-            public float MaxCurrent;
-            public float MaxThrust;
-            public float Mass;
+            public int KV { get; set; }
+            public float MaxRPM { get; set; }
+            public float MaxCurrent { get; set; }
+            public float MaxThrust { get; set; }
+            public float VoltageMin { get; set; }
+            public float VoltageMax { get; set; }
+            public float ShaftDiameter { get; set; }
+            public float MountHoleSize { get; set; }
         }
 
         class BatteryAsset : Asset
         {
-            public float Voltage;
-            public float CapacityAh;
-            public float Mass;
+            public int Cells { get; set; }
+            public float VoltageNominal { get; set; }
+            public float CapacityAh { get; set; }
+            public float MaxDischargeC { get; set; }
+        }
+
+        class ESCAsset : Asset
+        {
+            public float ContinuousCurrent { get; set; }
+            public float BurstCurrent { get; set; }
+            public bool SupportsDShot { get; set; }
+            public bool SupportsBLHeli { get; set; }
+        }
+
+        class FlightControllerAsset : Asset
+        {
+            public string MCU { get; set; } = "";
+            public int UARTCount { get; set; }
+            public bool HasOSD { get; set; }
+            public bool HasBlackbox { get; set; }
+            public float GyroUpdateRate { get; set; }
+        }
+
+        class ReceiverAsset : Asset
+        {
+            public string Protocol { get; set; } = ""; // SBUS, CRSF, ELRS
+            public float FrequencyGHz { get; set; }
+            public bool Telemetry { get; set; }
+        }
+
+        class PropellerAsset : Asset
+        {
+            public float DiameterInch { get; set; }
+            public float Pitch { get; set; }
+            public int BladeCount { get; set; }
         }
 
         class FrameAsset : Asset
         {
-            public FrameDefinition? Definition;
-            public int MotorCount;
+            public float WheelbaseMm { get; set; }
+            public int ArmCount { get; set; }
+            public float ArmThicknessMm { get; set; }
+            public FrameDefinition? Geometry { get; set; }
+        }
+
+        static class AssetIO
+        {
+            public static void SaveAsset(Asset asset, string path)
+            {
+                asset.Meta.Modified = DateTime.Now;
+
+                var json = JsonSerializer.Serialize(
+                    asset,
+                    asset.GetType(),
+                    new JsonSerializerOptions { WriteIndented = true }
+                );
+
+                Directory.CreateDirectory(Path.GetDirectoryName(path) ?? "");
+                File.WriteAllText(path, json);
+            }
+
+            public static Asset LoadAsset(string path)
+            {
+                var json = File.ReadAllText(path);
+
+                using var doc = JsonDocument.Parse(json);
+                string category = doc.RootElement.GetProperty("Category").GetString() ?? string.Empty;
+
+                return category switch
+                {
+                    "Motors" => JsonSerializer.Deserialize<MotorAsset>(json)!,
+                    "Batteries" => JsonSerializer.Deserialize<BatteryAsset>(json)!,
+                    "ESC" => JsonSerializer.Deserialize<ESCAsset>(json)!,
+                    "Frames" => JsonSerializer.Deserialize<FrameAsset>(json)!,
+                    "FC" => JsonSerializer.Deserialize<FlightControllerAsset>(json)!,
+                    "Props" => JsonSerializer.Deserialize<PropellerAsset>(json)!,
+                    "Receivers" => JsonSerializer.Deserialize<ReceiverAsset>(json)!,
+                    _ => throw new Exception("Unknown asset type")
+                };
+            }
         }
 
         static class AssetLibrary
         {
-            public static List<Asset> Assets = new();
+            public static readonly Dictionary<string, Asset> Assets = new();
+            public static readonly Dictionary<string, string> Paths = new();
+
+            public static readonly string UserAssetRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SilvuViewfinder", "Assets");
+
             public static void LoadDefaults()
             {
+                // keep a small set of built-in assets for a nice initial experience
                 Assets.Clear();
+                Paths.Clear();
 
-                Assets.Add(new MotorAsset
+                var a = new MotorAsset
                 {
                     Name = "2207 1750KV",
                     Category = "Motors",
                     MaxRPM = 22000f,
                     MaxCurrent = 35f,
                     MaxThrust = 15f,
-                    Mass = 0.031f,
+                    MassKg = 0.031f,
                     Description = "5-inch FPV motor"
-                });
+                };
+                Assets[a.Id] = a;
 
-                Assets.Add(new MotorAsset
+                var b = new MotorAsset
                 {
                     Name = "2306 1950KV",
                     Category = "Motors",
                     MaxRPM = 24000f,
                     MaxCurrent = 40f,
                     MaxThrust = 17f,
-                    Mass = 0.031f,
+                    MassKg = 0.031f,
                     Description = "High rpm motor"
-                });
+                };
+                Assets[b.Id] = b;
 
-                Assets.Add(new BatteryAsset
+                var ba4 = new BatteryAsset
                 {
                     Name = "4S LiPo",
                     Category = "Batteries",
-                    Voltage = 14.8f,
+                    VoltageNominal = 14.8f,
                     CapacityAh = 1.3f,
-                    Mass = 0.22f,
+                    MassKg = 0.22f,
+                    Cells = 4,
                     Description = "4S battery"
-                });
+                };
+                Assets[ba4.Id] = ba4;
 
-                Assets.Add(new BatteryAsset
+                var ba6 = new BatteryAsset
                 {
                     Name = "6S LiPo",
                     Category = "Batteries",
-                    Voltage = 22.2f,
+                    VoltageNominal = 22.2f,
                     CapacityAh = 1.3f,
-                    Mass = 0.22f,
+                    MassKg = 0.22f,
+                    Cells = 6,
                     Description = "6S battery"
-                });
+                };
+                Assets[ba6.Id] = ba6;
 
-                Assets.Add(new FrameAsset
+                var f = new FrameAsset
                 {
                     Name = "X Frame",
                     Category = "Frames",
-                    Definition = FrameDB.XFrame,
-                    MotorCount = 4,
+                    Geometry = FrameDB.XFrame,
+                    ArmCount = 4,
+                    ArmThicknessMm = 4.0f,
+                    WheelbaseMm = 300,
                     Description = "Standard 5-inch X frame"
-                });
-
-                Assets.Add(new FrameAsset
-                {
-                    Name = "Deadcat",
-                    Category = "Frames",
-                    Definition = FrameDB.XFrame,
-                    MotorCount = 4,
-                    Description = "Deadcat variant"
-                });
+                };
+                Assets[f.Id] = f;
             }
 
+            public static void LoadAll(string rootDir)
+            {
+                if (!Directory.Exists(rootDir)) Directory.CreateDirectory(rootDir);
+
+                foreach (var file in Directory.GetFiles(rootDir, "*.svasset", SearchOption.AllDirectories))
+                {
+                    try
+                    {
+                        var asset = AssetIO.LoadAsset(file);
+                        Assets[asset.Id] = asset;
+                        Paths[asset.Id] = file;
+                    }
+                    catch { /* skip invalid */ }
+                }
+            }
+
+            public static IEnumerable<Asset> GetByCategory(string category)
+                => Assets.Values.Where(a => a.Category == category).OrderBy(a => a.Name);
+
             public static Asset? FindByName(string name)
-                => Assets.FirstOrDefault(a => a.Name == name);
+                => Assets.Values.FirstOrDefault(a => a.Name == name);
 
             public static Asset? Get(string id)
-                => Assets.FirstOrDefault(a => a.Id == id);
+                => Assets.TryGetValue(id, out var a) ? a : null;
+
+            public static string SaveAssetToUserDir(Asset asset)
+            {
+                var dir = Path.Combine(UserAssetRoot, asset.Category);
+                Directory.CreateDirectory(dir);
+                string fileName = SanitizeFileName(asset.Name);
+                string path = Path.Combine(dir, fileName + ".svasset");
+
+                // ensure unique filename
+                int i = 1;
+                while (File.Exists(path))
+                {
+                    path = Path.Combine(dir, fileName + $"_{i}.svasset");
+                    i++;
+                }
+
+                AssetIO.SaveAsset(asset, path);
+                Assets[asset.Id] = asset;
+                Paths[asset.Id] = path;
+                return path;
+            }
+
+            public static void DeleteAsset(Asset asset)
+            {
+                if (Paths.TryGetValue(asset.Id, out var path) && File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+
+                Assets.Remove(asset.Id);
+                Paths.Remove(asset.Id);
+            }
+
+            static string SanitizeFileName(string name)
+            {
+                var invalid = Path.GetInvalidFileNameChars();
+                return new string(name.Select(c => invalid.Contains(c) ? '_' : c).ToArray());
+            }
+        }
+
+        class AssetEditorForm : Form
+        {
+            public Asset Asset { get; }
+            PropertyGrid grid = new PropertyGrid();
+            Button btnSave = new Button { Text = "Save", Dock = DockStyle.Right, Width = 100 };
+            Button btnCancel = new Button { Text = "Cancel", Dock = DockStyle.Right, Width = 100 };
+
+            public AssetEditorForm(Asset asset)
+            {
+                Asset = asset;
+                Text = $"Edit Asset - {asset.Name}";
+                Width = 500;
+                Height = 600;
+
+                grid.Dock = DockStyle.Fill;
+                grid.SelectedObject = asset;
+                grid.PropertyValueChanged += (s, e) => { Text = $"Edit Asset - {asset.Name}"; };
+
+                var bottom = new Panel { Dock = DockStyle.Bottom, Height = 40 };
+                btnSave.Click += (_,__) => { DialogResult = DialogResult.OK; Close(); };
+                btnCancel.Click += (_,__) => { DialogResult = DialogResult.Cancel; Close(); };
+                bottom.Controls.Add(btnCancel);
+                bottom.Controls.Add(btnSave);
+
+                Controls.Add(grid);
+                Controls.Add(bottom);
+            }
         }
 
         static class FrameDB
