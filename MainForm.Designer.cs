@@ -2,7 +2,7 @@ using System.Windows.Forms;
 
 namespace WinFormsCounter
 {
-    partial class MainForm
+    partial class MainForm : Form
     {
         private System.ComponentModel.IContainer components = null;
         private Button button;
@@ -46,6 +46,11 @@ namespace WinFormsCounter
             this.Text = "Counter";
             this.ResumeLayout(false);
             this.PerformLayout();
+        }
+
+        private void button_Click(object? sender, EventArgs e)
+        {
+            // Event handler stub (designer referenced). No-op.
         }
 
         protected override void Dispose(bool disposing)

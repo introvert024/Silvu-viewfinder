@@ -1,0 +1,15 @@
+C:\Users\krish\Silvuviewfinder\bin\Debug\net10.0-windows\Silvuviewfinder.exe
+C:\Users\krish\Silvuviewfinder\bin\Debug\net10.0-windows\Silvuviewfinder.deps.json
+C:\Users\krish\Silvuviewfinder\bin\Debug\net10.0-windows\Silvuviewfinder.runtimeconfig.json
+C:\Users\krish\Silvuviewfinder\bin\Debug\net10.0-windows\Silvuviewfinder.dll
+C:\Users\krish\Silvuviewfinder\bin\Debug\net10.0-windows\Silvuviewfinder.pdb
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.AssemblyInfoInputs.cache
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.AssemblyInfo.cs
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.csproj.CoreCompileInputs.cache
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.dll
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\refint\Silvuviewfinder.dll
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.pdb
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.genruntimeconfig.cache
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\ref\Silvuviewfinder.dll
+C:\Users\krish\Silvuviewfinder\obj\Debug\net10.0-windows\Silvuviewfinder.sourcelink.json

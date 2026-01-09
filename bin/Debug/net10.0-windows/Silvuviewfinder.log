@@ -1,0 +1,187 @@
+﻿[2026-01-07 22:40:05] Program.Main starting
+[2026-01-07 22:40:05] EXCEPTION: Object reference not set to an instance of an object.
+   at Silvuviewfinder.Form1.ApplyTheme(AppTheme theme) in C:\Users\krish\Silvuviewfinder\Form1.cs:line 120
+   at Silvuviewfinder.Form1..ctor() in C:\Users\krish\Silvuviewfinder\Form1.cs:line 28
+   at Silvuviewfinder.Program.Main() in C:\Users\krish\Silvuviewfinder\Program.cs:line 26
+[2026-01-07 22:40:05] EXCEPTION: Object reference not set to an instance of an object.
+   at Silvuviewfinder.Form1.ApplyTheme(AppTheme theme) in C:\Users\krish\Silvuviewfinder\Form1.cs:line 120
+   at Silvuviewfinder.Form1..ctor() in C:\Users\krish\Silvuviewfinder\Form1.cs:line 28
+   at Silvuviewfinder.Program.Main() in C:\Users\krish\Silvuviewfinder\Program.cs:line 26
+[2026-01-07 22:40:43] Program.Main starting
+[2026-01-07 22:40:44] Form1_Load starting
+[2026-01-07 22:40:44] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 22:40:44] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=False
+[2026-01-07 22:42:01] Program.Main starting
+[2026-01-07 22:42:02] Form1_Load starting
+[2026-01-07 22:42:02] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 22:42:02] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 22:42:04] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=False
+[2026-01-07 22:42:21] Program.Main exiting normally
+[2026-01-07 22:44:06] Program.Main starting
+[2026-01-07 22:44:07] Form1_Load starting
+[2026-01-07 22:44:07] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 22:44:07] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 22:44:09] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=False
+[2026-01-07 22:50:16] Program.Main exiting normally
+[2026-01-07 22:51:16] Program.Main starting
+[2026-01-07 22:51:17] Form1_Load starting
+[2026-01-07 22:51:17] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 22:51:17] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 22:51:19] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=False
+[2026-01-07 22:51:33] Program.Main exiting normally
+[2026-01-07 22:57:19] Program.Main starting
+[2026-01-07 22:57:19] Form1_Load starting
+[2026-01-07 22:57:19] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 22:57:19] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 22:57:19] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:00:33] Program.Main exiting normally
+[2026-01-07 23:03:57] Program.Main starting
+[2026-01-07 23:03:58] Form1_Load starting
+[2026-01-07 23:03:58] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 23:03:58] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 23:03:58] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:06:58] Program.Main exiting normally
+[2026-01-07 23:08:10] Program.Main starting
+[2026-01-07 23:08:11] Form1_Load starting
+[2026-01-07 23:08:11] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 23:08:11] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 23:08:11] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:11:00] Program.Main exiting normally
+[2026-01-07 23:11:10] Program.Main starting
+[2026-01-07 23:11:11] Form1_Load starting
+[2026-01-07 23:11:11] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 23:11:11] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 23:11:11] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:12:58] Program.Main starting
+[2026-01-07 23:12:58] Form1_Load starting
+[2026-01-07 23:12:58] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 23:12:58] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 23:12:58] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:14:13] Program.Main starting
+[2026-01-07 23:14:13] Form1_Load starting
+[2026-01-07 23:14:13] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 23:14:13] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 23:14:13] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:15:05] Program.Main exiting normally
+[2026-01-07 23:15:46] Program.Main starting
+[2026-01-07 23:15:47] Form1_Load starting
+[2026-01-07 23:15:47] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 23:15:47] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 23:15:47] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:15:59] Program.Main exiting normally
+[2026-01-07 23:19:31] Program.Main starting
+[2026-01-07 23:19:31] Form1_Load starting
+[2026-01-07 23:19:31] Initial WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}
+[2026-01-07 23:19:31] Moved to primary screen center: Location={X=277,Y=168}
+[2026-01-07 23:19:31] Post-restore WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}, TopMost=True
+[2026-01-07 23:21:17] Program.Main starting
+[2026-01-07 23:21:18] Form1_Load starting
+[2026-01-07 23:21:18] Initial WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}
+[2026-01-07 23:21:18] Moved to primary screen center: Location={X=268,Y=144}
+[2026-01-07 23:21:18] Post-restore WindowState=Normal, Visible=True, Bounds={X=268,Y=144,Width=1384,Height=815}, TopMost=True
+[2026-01-07 23:21:30] Program.Main exiting normally
+[2026-01-07 23:23:24] Program.Main starting
+[2026-01-07 23:23:24] Form1_Load starting
+[2026-01-07 23:23:24] Initial WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}
+[2026-01-07 23:23:24] Moved to primary screen center: Location={X=277,Y=168}
+[2026-01-07 23:23:24] Post-restore WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}, TopMost=True
+[2026-01-07 23:24:01] Program.Main exiting normally
+[2026-01-07 23:25:31] Program.Main starting
+[2026-01-07 23:25:31] Form1_Load starting
+[2026-01-07 23:25:31] Initial WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}
+[2026-01-07 23:25:31] Moved to primary screen center: Location={X=277,Y=168}
+[2026-01-07 23:25:31] Post-restore WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}, TopMost=True
+[2026-01-07 23:26:28] Program.Main exiting normally
+[2026-01-07 23:26:53] Program.Main starting
+[2026-01-07 23:26:53] Form1_Load starting
+[2026-01-07 23:26:53] Initial WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}
+[2026-01-07 23:26:53] Moved to primary screen center: Location={X=277,Y=168}
+[2026-01-07 23:26:53] Post-restore WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}, TopMost=True
+[2026-01-07 23:27:39] Program.Main exiting normally
+[2026-01-07 23:28:28] Program.Main starting
+[2026-01-07 23:28:28] Form1_Load starting
+[2026-01-07 23:28:28] Initial WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}
+[2026-01-07 23:28:28] Moved to primary screen center: Location={X=277,Y=168}
+[2026-01-07 23:28:28] Post-restore WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}, TopMost=True
+[2026-01-07 23:31:50] Program.Main exiting normally
+[2026-01-07 23:33:11] Program.Main starting
+[2026-01-07 23:33:12] Form1_Load starting
+[2026-01-07 23:33:12] Initial WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}
+[2026-01-07 23:33:12] Moved to primary screen center: Location={X=277,Y=168}
+[2026-01-07 23:33:12] Post-restore WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}, TopMost=True
+[2026-01-07 23:35:38] Program.Main starting
+[2026-01-07 23:35:38] Form1_Load starting
+[2026-01-07 23:35:38] Initial WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}
+[2026-01-07 23:35:38] Moved to primary screen center: Location={X=277,Y=168}
+[2026-01-07 23:35:38] Post-restore WindowState=Normal, Visible=True, Bounds={X=277,Y=168,Width=1366,Height=768}, TopMost=True
+[2026-01-07 23:45:48] Program.Main exiting normally
+[2026-01-08 00:38:17] Program.Main starting
+[2026-01-08 00:39:47] Program.Main exiting normally
+[2026-01-08 00:40:01] Program.Main starting
+[2026-01-08 00:40:05] Program.Main exiting normally
+[2026-01-08 00:40:17] Program.Main starting
+[2026-01-08 00:40:24] Program.Main exiting normally
+[2026-01-08 00:45:35] Program.Main starting
+[2026-01-08 00:47:01] Program.Main exiting normally
+[2026-01-08 00:52:54] Program.Main starting
+[2026-01-08 00:53:52] Program.Main exiting normally
+[2026-01-08 00:54:02] Program.Main starting
+[2026-01-08 00:56:38] Program.Main exiting normally
+[2026-01-08 00:56:57] Program.Main starting
+[2026-01-08 01:01:29] Program.Main starting
+[2026-01-08 01:02:36] Program.Main exiting normally
+[2026-01-08 01:04:07] Program.Main starting
+[2026-01-08 01:04:28] Program.Main exiting normally
+[2026-01-08 01:04:35] Program.Main starting
+[2026-01-08 01:06:09] Program.Main exiting normally
+[2026-01-08 01:07:49] Program.Main starting
+[2026-01-08 01:07:49] EXCEPTION: Object reference not set to an instance of an object.
+   at Silvuviewfinder.Form1.InitializeComponent() in C:\Users\krish\Silvuviewfinder\Form1.Designer.cs:line 121
+   at Silvuviewfinder.Form1..ctor() in C:\Users\krish\Silvuviewfinder\Form1.cs:line 20
+   at Silvuviewfinder.Program.Main() in C:\Users\krish\Silvuviewfinder\Program.cs:line 26
+[2026-01-08 01:07:49] EXCEPTION: Object reference not set to an instance of an object.
+   at Silvuviewfinder.Form1.InitializeComponent() in C:\Users\krish\Silvuviewfinder\Form1.Designer.cs:line 121
+   at Silvuviewfinder.Form1..ctor() in C:\Users\krish\Silvuviewfinder\Form1.cs:line 20
+   at Silvuviewfinder.Program.Main() in C:\Users\krish\Silvuviewfinder\Program.cs:line 26
+[2026-01-08 01:08:01] Program.Main starting
+[2026-01-08 01:08:01] EXCEPTION: Object reference not set to an instance of an object.
+   at Silvuviewfinder.Form1.InitializeComponent() in C:\Users\krish\Silvuviewfinder\Form1.Designer.cs:line 121
+   at Silvuviewfinder.Form1..ctor() in C:\Users\krish\Silvuviewfinder\Form1.cs:line 20
+   at Silvuviewfinder.Program.Main() in C:\Users\krish\Silvuviewfinder\Program.cs:line 26
+[2026-01-08 01:08:01] EXCEPTION: Object reference not set to an instance of an object.
+   at Silvuviewfinder.Form1.InitializeComponent() in C:\Users\krish\Silvuviewfinder\Form1.Designer.cs:line 121
+   at Silvuviewfinder.Form1..ctor() in C:\Users\krish\Silvuviewfinder\Form1.cs:line 20
+   at Silvuviewfinder.Program.Main() in C:\Users\krish\Silvuviewfinder\Program.cs:line 26
+[2026-01-08 01:08:43] Program.Main starting
+[2026-01-08 01:08:51] Program.Main exiting normally
+[2026-01-08 01:08:56] Program.Main starting
+[2026-01-08 01:09:00] Program.Main exiting normally
+[2026-01-08 01:11:59] Program.Main starting
+[2026-01-08 01:17:09] Program.Main exiting normally
+[2026-01-08 01:19:09] Program.Main starting
+[2026-01-08 01:23:01] Program.Main exiting normally
+[2026-01-08 01:23:15] Program.Main starting
+[2026-01-08 01:26:28] Program.Main exiting normally
+[2026-01-08 01:26:42] Program.Main starting
+[2026-01-08 01:27:15] Program.Main exiting normally
+[2026-01-08 01:28:23] Program.Main starting
+[2026-01-08 01:28:59] Program.Main exiting normally
+[2026-01-08 01:29:49] Program.Main starting
+[2026-01-08 01:34:16] Program.Main exiting normally
+[2026-01-08 01:34:27] Program.Main starting
+[2026-01-08 01:35:48] Program.Main exiting normally
+[2026-01-08 01:44:27] Program.Main starting
+[2026-01-08 01:45:07] Program.Main exiting normally
+[2026-01-08 01:45:14] Program.Main starting
+[2026-01-08 01:48:23] Program.Main starting
+[2026-01-08 01:50:13] Program.Main exiting normally
+[2026-01-08 01:50:18] Program.Main starting
+[2026-01-08 01:50:43] Program.Main exiting normally
+[2026-01-08 01:50:49] Program.Main starting
+[2026-01-08 01:51:12] Program.Main exiting normally
+[2026-01-08 01:54:52] Program.Main starting
+[2026-01-08 02:05:57] Program.Main exiting normally
+[2026-01-09 23:24:10] Program.Main starting
+[2026-01-09 23:26:56] Program.Main exiting normally
+[2026-01-09 23:35:43] Program.Main starting
+[2026-01-09 23:37:32] Program.Main exiting normally

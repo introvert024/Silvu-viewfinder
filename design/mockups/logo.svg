@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="36" viewBox="0 0 220 36">
+  <rect rx="6" width="36" height="36" fill="#26343C" />
+  <g transform="translate(44,4)">
+    <text x="0" y="18" font-family="Inter,Segoe UI,Arial" font-size="18" fill="#ECEFF1" font-weight="700">SILVU</text>
+    <text x="60" y="18" font-family="Inter,Segoe UI,Arial" font-size="14" fill="#B0BEC5">VIEWFINDER</text>
+  </g>
+</svg>

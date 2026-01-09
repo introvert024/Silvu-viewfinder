@@ -1,0 +1,20 @@
+{
+  "colors": {
+    "background":"#0F1720",
+    "panelDark":"#15232C",
+    "panelLight":"#1B2C36",
+    "accentRed":"#E53935",
+    "textPrimary":"#ECEFF1",
+    "textSecondary":"#B0BEC5",
+    "divider":"rgba(255,255,255,0.06)"
+  },
+  "typography":{
+    "fontFamily":"Inter, Segoe UI, system-ui, -apple-system, 'Helvetica Neue', Arial",
+    "baseSize":"14px",
+    "headingSize":"16px"
+  },
+  "spacing":{
+    "gutter":"16px",
+    "panelPadding":"12px"
+  }
+}

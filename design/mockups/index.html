@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SILVU VIEWFINDER — Mockup</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="left"><img src="logo.svg" width="220" alt="logo"/></div>
+      <nav><span>Project</span><span>Simulate</span><span>Parts Library</span><span>Environment</span><span>Help</span></nav>
+    </div>
+
+    <div class="app-body">
+      <aside class="sidebar">
+        <button class="side-btn">🧠<span>Flight Controller</span></button>
+        <button class="side-btn">⚡<span>Battery & Power</span></button>
+        <button class="side-btn">🔧<span>Motors & Props</span></button>
+        <button class="side-btn">🧱<span>Frame & Weight</span></button>
+        <button class="side-btn">📡<span>Sensors</span></button>
+        <button class="side-btn">🎮<span>Controls</span></button>
+        <div style="flex:1"></div>
+        <button class="side-btn">⚙️<span>Simulation Settings</span></button>
+      </aside>
+
+      <main class="viewport">
+        <div class="modes"><div class="mode active">Build Mode</div><div class="mode">Flight Test</div><div class="mode">Failure Test</div></div>
+        <div class="view">
+          <div style="text-align:center;">
+            <img src="drone.svg" alt="drone" style="max-width:420px;display:block;margin:0 auto;"/>
+            <div class="kv small" style="margin-top:8px">Weight: 650g &nbsp; • &nbsp; Battery: 4S 1500mAh</div>
+          </div>
+        </div>
+
+        <div class="timeline">
+          <div class="controls"><button id="play" class="btn">▶</button><button id="pause" class="btn" disabled>⏸</button><button class="btn">■</button>
+            <div style="flex:1"></div>
+            <div id="time" class="small">00:15.27 / 01:45.00</div>
+          </div>
+          <div style="height:8px;margin-top:12px;background:linear-gradient(90deg,#123,#456);border-radius:6px"></div>
+        </div>
+      </main>
+
+      <aside class="right-panel">
+        <div class="card telemetry">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><strong>Live Data</strong><small class="small">Running</small></div>
+          <div class="row"><div class="kv">Altitude</div><div>12.3 m</div></div>
+          <div class="row"><div class="kv">Speed</div><div>38.5 km/h</div></div>
+          <div class="row"><div class="kv">Battery Voltage</div><div>15.8 V</div></div>
+          <div class="row"><div class="kv">Motor RPMs</div><div>24,300 | 24,100 | 23,200</div></div>
+        </div>
+
+        <div class="card">
+          <strong>PID Tuning</strong>
+          <div style="margin-top:8px">
+            <div class="small">P Gain</div>
+            <div class="slider" style="margin:6px 0"></div>
+            <div class="small">I Gain</div>
+            <div class="slider" style="margin:6px 0"></div>
+            <div class="small">D Gain</div>
+            <div class="slider" style="margin:6px 0"></div>
+          </div>
+        </div>
+
+        <div class="card small"><div style="display:flex;justify-content:space-between"><div>Compare A</div><div>Compare B</div></div>
+        <div style="margin-top:8px;text-align:right"><button class="btn">Export Results</button></div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="footer small" style="margin-top:14px;display:flex;align-items:center;justify-content:space-between">
+      <div class="kv">Playback Timeline</div>
+      <div class="kv">00:15.27 / 01:45.00</div>
+    </div>
+  </div>
+  <script src="controls.js"></script>
+</body>
+</html>
