@@ -356,13 +356,11 @@ ToolTip partToolTip = new ToolTip();
 
                 if (dragging.Category == "Motors")
                 {
-                    AddMotor(pt, dragging.Name);
-                    added = true;
+                    added = AddMotor(pt, dragging.Name);
                 }
                 else if (dragging.Category == "Batteries")
                 {
-                    AddBattery(pt, dragging.Name);
-                    added = true;
+                    added = AddBattery(pt, dragging.Name);
                 }
 
                 if (added)
@@ -412,20 +410,20 @@ ToolTip partToolTip = new ToolTip();
                 {
                     if (pendingAddMode == PartType.Motor)
                     {
-                        AddMotor(e.Location, pendingAddName ?? "Motor");
+                        bool added = AddMotor(e.Location, pendingAddName ?? "Motor");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        OnProjectStructureChanged();
+                        if (added) OnProjectStructureChanged();
                         return;
                     }
                     else if (pendingAddMode == PartType.Battery)
                     {
-                        AddBattery(e.Location, pendingAddName ?? "Battery");
+                        bool added = AddBattery(e.Location, pendingAddName ?? "Battery");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        OnProjectStructureChanged();
+                        if (added) OnProjectStructureChanged();
                         return;
                     }
                 }
@@ -543,13 +541,11 @@ ToolTip partToolTip = new ToolTip();
 
             if (cat == "Motors")
             {
-                AddMotor(pt, name);
-                added = true;
+                added = AddMotor(pt, name);
             }
             else if (cat == "Batteries")
             {
-                AddBattery(pt, name);
-                added = true;
+                added = AddBattery(pt, name);
             }
             else if (name == "X Frame")
             {
@@ -950,12 +946,16 @@ void DrawPhysicsHUD(Graphics g)
             return -1;
         }
 
-        void AddMotor(PointF mousePos, string name)
+        bool AddMotor(PointF mousePos, string name)
         {
-            if (!HasFrame()) return;
+            if (!HasFrame()) return false;
 
             int mount = FindNearestMount(mousePos);
-            if (mount == -1) return;
+            if (mount == -1) return false;
+
+            // Prevent placing multiple motors on the same mount
+            if (project!.PlacedParts.Any(p => p.Type == PartType.Motor && p.AttachedMountIndex == mount))
+                return false;
 
             project!.PlacedParts.Add(new PlacedPart
             {
@@ -963,12 +963,14 @@ void DrawPhysicsHUD(Graphics g)
                 Name = name,
                 AttachedMountIndex = mount
             });
+
+            return true;
         }
 
-        void AddBattery(PointF mousePos, string name)
+        bool AddBattery(PointF mousePos, string name)
         {
             var frame = GetFrame();
-            if (frame == null) return;
+            if (frame == null) return false;
 
             var bay = FrameDB.XFrame.BatteryBay;
             var worldBay = new RectangleF(
@@ -978,7 +980,11 @@ void DrawPhysicsHUD(Graphics g)
                 bay.Height
             );
 
-            if (!worldBay.Contains(mousePos)) return;
+            if (!worldBay.Contains(mousePos)) return false;
+
+            // Prevent multiple batteries on the same frame
+            if (project!.PlacedParts.Any(p => p.Type == PartType.Battery))
+                return false;
 
             project!.PlacedParts.Add(new PlacedPart
             {
@@ -986,6 +992,8 @@ void DrawPhysicsHUD(Graphics g)
                 Name = name,
                 Position = frame.Position
             });
+
+            return true;
         }
 
 
