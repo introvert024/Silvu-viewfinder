@@ -719,21 +719,21 @@ void DrawPhysicsHUD(Graphics g)
 
         void BuildLibrary()
         {
-            var motors = new TreeNode("Motors");
-            motors.Nodes.Add("2207 1750KV");
-            motors.Nodes.Add("2306 1950KV");
+            libraryTree.Nodes.Clear();
 
-            var batteries = new TreeNode("Batteries");
-            batteries.Nodes.Add("4S LiPo");
-            batteries.Nodes.Add("6S LiPo");
+            AssetLibrary.LoadDefaults();
 
-            var frames = new TreeNode("Frames");
-            frames.Nodes.Add("X Frame");
-            frames.Nodes.Add("Deadcat");
-
-            libraryTree.Nodes.Add(motors);
-            libraryTree.Nodes.Add(batteries);
-            libraryTree.Nodes.Add(frames);
+            var groups = AssetLibrary.Assets.GroupBy(a => a.Category).OrderBy(g => g.Key);
+            foreach (var g in groups)
+            {
+                var parent = new TreeNode(g.Key);
+                foreach (var a in g)
+                {
+                    var node = new TreeNode(a.Name);
+                    parent.Nodes.Add(node);
+                }
+                libraryTree.Nodes.Add(parent);
+            }
         }
         void OnProjectStructureChanged()
 {
@@ -794,6 +794,109 @@ void DrawPhysicsHUD(Graphics g)
         {
             public string Category { get; set; } = "";
             public string Name { get; set; } = "";
+            public string AssetId { get; set; } = ""; // optional bridge to AssetLibrary
+        }
+
+        abstract class Asset
+        {
+            public string Id = Guid.NewGuid().ToString();
+            public string Name = "";
+            public string Category = "";
+            public string Description = "";
+            public Image? Icon;
+        }
+
+        class MotorAsset : Asset
+        {
+            public float MaxRPM;
+            public float MaxCurrent;
+            public float MaxThrust;
+            public float Mass;
+        }
+
+        class BatteryAsset : Asset
+        {
+            public float Voltage;
+            public float CapacityAh;
+            public float Mass;
+        }
+
+        class FrameAsset : Asset
+        {
+            public FrameDefinition? Definition;
+            public int MotorCount;
+        }
+
+        static class AssetLibrary
+        {
+            public static List<Asset> Assets = new();
+            public static void LoadDefaults()
+            {
+                Assets.Clear();
+
+                Assets.Add(new MotorAsset
+                {
+                    Name = "2207 1750KV",
+                    Category = "Motors",
+                    MaxRPM = 22000f,
+                    MaxCurrent = 35f,
+                    MaxThrust = 15f,
+                    Mass = 0.031f,
+                    Description = "5-inch FPV motor"
+                });
+
+                Assets.Add(new MotorAsset
+                {
+                    Name = "2306 1950KV",
+                    Category = "Motors",
+                    MaxRPM = 24000f,
+                    MaxCurrent = 40f,
+                    MaxThrust = 17f,
+                    Mass = 0.031f,
+                    Description = "High rpm motor"
+                });
+
+                Assets.Add(new BatteryAsset
+                {
+                    Name = "4S LiPo",
+                    Category = "Batteries",
+                    Voltage = 14.8f,
+                    CapacityAh = 1.3f,
+                    Mass = 0.22f,
+                    Description = "4S battery"
+                });
+
+                Assets.Add(new BatteryAsset
+                {
+                    Name = "6S LiPo",
+                    Category = "Batteries",
+                    Voltage = 22.2f,
+                    CapacityAh = 1.3f,
+                    Mass = 0.22f,
+                    Description = "6S battery"
+                });
+
+                Assets.Add(new FrameAsset
+                {
+                    Name = "X Frame",
+                    Category = "Frames",
+                    Definition = FrameDB.XFrame,
+                    MotorCount = 4,
+                    Description = "Standard 5-inch X frame"
+                });
+
+                Assets.Add(new FrameAsset
+                {
+                    Name = "Deadcat",
+                    Category = "Frames",
+                    Definition = FrameDB.XFrame,
+                    MotorCount = 4,
+                    Description = "Deadcat variant"
+                });
+            }
+
+            public static Asset? FindByName(string name)
+                => Assets.FirstOrDefault(a => a.Name == name);
         }
 
         static class FrameDB
