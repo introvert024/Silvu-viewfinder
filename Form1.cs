@@ -9,10 +9,11 @@ using System.Text.Json;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace SilvuViewfinder
 {
-    public class Form1 : Form, ISilvuHost
+    public partial class Form1 : Form, ISilvuHost
     {
 
         bool darkMode = false;
@@ -28,6 +29,9 @@ namespace SilvuViewfinder
         Point mousePos;
 
         MenuStrip menu = null!;
+        Panel titleBarPanel = null!, titleMenuHost = null!, titleButtonPanel = null!;
+        PictureBox titleLogo = null!;
+        Button titleMinButton = null!, titleMaxButton = null!, titleCloseButton = null!;
         TreeView projectTree = null!, libraryTree = null!;
         PictureBox viewport = null!;
         Label twrValueLabel = null!, hoverValueLabel = null!, flightValueLabel = null!, sagValueLabel = null!, tempValueLabel = null!;
@@ -62,6 +66,8 @@ namespace SilvuViewfinder
         int crashCount = 0;
         int telemetryDecimator = 0;
         bool educationMode = false;
+        readonly FeatureSetProfile featureProfile = new FeatureSetProfile();
+        float escDelayedThrottle = 0f;
 
         // Status bar
         StatusStrip statusStrip = null!;
@@ -209,14 +215,50 @@ float lastError = 0;
         float batteryRemainingAh = 1.3f;
 
         const float GRAVITY = 9.81f;
+        const int RESIZE_BORDER = 7;
+        const int WM_NCLBUTTONDOWN = 0xA1;
+        const int WM_NCHITTEST = 0x84;
+        const int HTLEFT = 10;
+        const int HTRIGHT = 11;
+        const int HTTOP = 12;
+        const int HTTOPLEFT = 13;
+        const int HTTOPRIGHT = 14;
+        const int HTBOTTOM = 15;
+        const int HTBOTTOMLEFT = 16;
+        const int HTBOTTOMRIGHT = 17;
+        const int HTCLIENT = 1;
+        const int HTCAPTION = 0x2;
+
+        [DllImport("user32.dll")]
+        static extern bool ReleaseCapture();
+
+        [DllImport("user32.dll")]
+        static extern IntPtr SendMessage(IntPtr hWnd, int msg, int wParam, int lParam);
+
+        [DllImport("dwmapi.dll")]
+        static extern int DwmSetWindowAttribute(IntPtr hwnd, int dwAttribute, ref int pvAttribute, int cbAttribute);
+
+        [DllImport("dwmapi.dll")]
+        static extern int DwmExtendFrameIntoClientArea(IntPtr hWnd, ref MARGINS pMarInset);
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct MARGINS
+        {
+            public int Left;
+            public int Right;
+            public int Top;
+            public int Bottom;
+        }
 
         public Form1()
         {
             Text = "SILVU VIEWFINDER";
             Width = 1400;
             Height = 860;
+            FormBorderStyle = FormBorderStyle.None;
             StartPosition = FormStartPosition.CenterScreen;
             KeyPreview = true;
+            SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
 
             BuildUI();
             Shown += (_, __) => ConfigureNavigationSplit();
@@ -239,25 +281,41 @@ float lastError = 0;
             // MENU
             menu = new MenuStrip
             {
-                Dock = DockStyle.Top,
+                Dock = DockStyle.Fill,
                 GripStyle = ToolStripGripStyle.Hidden,
-                Padding = new Padding(outerGutter, 5, outerGutter, 5),
+                Padding = new Padding(6, 2, 6, 2),
                 AutoSize = false,
-                Height = 44,
+                Height = 28,
                 RenderMode = ToolStripRenderMode.Professional,
                 Renderer = toolStripRenderer
             };
             logoImage = LoadBrandLogo();
 
-            var proj = new ToolStripMenuItem("Project");
+            var proj = new ToolStripMenuItem("File");
             proj.DropDownItems.Add(CreateMenuItem("New", Keys.Control | Keys.N, (_,__) => NewProject()));
             proj.DropDownItems.Add(CreateMenuItem("Open...", Keys.Control | Keys.O, (_,__) => OpenProject()));
             proj.DropDownItems.Add(CreateMenuItem("Save", Keys.Control | Keys.S, (_,__) => SaveProject()));
             proj.DropDownItems.Add(new ToolStripSeparator());
+            proj.DropDownItems.Add("Export Active Config...", null, (_, __) => exportConfigButton?.PerformClick());
+            proj.DropDownItems.Add(new ToolStripSeparator());
             proj.DropDownItems.Add(CreateMenuItem("Exit", Keys.Alt | Keys.F4, (_,__) => Close()));
 
-            var tools = new ToolStripMenuItem("Tools");
-            tools.DropDownItems.Add(CreateMenuItem("Toggle Dark Mode", Keys.Control | Keys.D, (_,__) => ToggleDark()));
+            var editMenu = new ToolStripMenuItem("Edit");
+            editMenu.DropDownItems.Add(CreateMenuItem("Delete Selected Part", Keys.Delete, (_, __) => DeleteSelectedPart()));
+            editMenu.DropDownItems.Add(CreateMenuItem("Duplicate Selected Part", Keys.Control | Keys.Shift | Keys.D, (_, __) => DuplicateSelectedPart()));
+            editMenu.DropDownItems.Add(new ToolStripSeparator());
+            editMenu.DropDownItems.Add("Clear Fault Injection", null, (_, __) => ClearFaultInjection());
+
+            var viewMenu = new ToolStripMenuItem("View");
+            viewMenu.DropDownItems.Add(CreateMenuItem("Toggle Dark Mode", Keys.Control | Keys.D, (_,__) => ToggleDark()));
+            var workspaceMenu = new ToolStripMenuItem("Workspace");
+            workspaceMenu.DropDownItems.Add("Assemble", null, (_, __) => SetWorkspace(WorkspaceArea.Assemble));
+            workspaceMenu.DropDownItems.Add("Configurations", null, (_, __) => SetWorkspace(WorkspaceArea.Configurations));
+            workspaceMenu.DropDownItems.Add("Fluid / Air Simulation", null, (_, __) => SetWorkspace(WorkspaceArea.FluidAirSimulation));
+            workspaceMenu.DropDownItems.Add("3D Live Simulation", null, (_, __) => SetWorkspace(WorkspaceArea.Realtime3D));
+            workspaceMenu.DropDownItems.Add("Software Configuration", null, (_, __) => SetWorkspace(WorkspaceArea.SoftwareConfiguration));
+            viewMenu.DropDownItems.Add(new ToolStripSeparator());
+            viewMenu.DropDownItems.Add(workspaceMenu);
 
             // ASSETS menu
             var assetsMenu = new ToolStripMenuItem("Assets");
@@ -272,7 +330,7 @@ float lastError = 0;
             newAsset.DropDownItems.Add("Receivers", null, (_,__) => CreateNewAsset("Receivers"));
             assetsMenu.DropDownItems.Add(newAsset);
 
-            var simMenu = new ToolStripMenuItem("Simulation");
+            var simMenu = new ToolStripMenuItem("Settings");
             var modeMenu = new ToolStripMenuItem("Mode");
             void AddModeItem(string text, SimulationMode mode)
             {
@@ -394,48 +452,14 @@ float lastError = 0;
             };
             educationMenu.DropDownItems.Add(educationToggle);
 
-            if (logoImage != null)
-            {
-                var logoLabel = new ToolStripLabel
-                {
-                    DisplayStyle = ToolStripItemDisplayStyle.Image,
-                    Image = logoImage,
-                    ImageScaling = ToolStripItemImageScaling.None,
-                    AutoSize = false,
-                    Size = new Size(138, 30),
-                    Margin = new Padding(0, 0, 14, 0),
-                    ToolTipText = "SILVU"
-                };
-                menu.Items.Add(logoLabel);
-            }
-
-            var brandSubtitle = new ToolStripLabel("Component-Level Drone Builder")
-            {
-                ForeColor = CurrentPalette.TextMuted,
-                Margin = new Padding(0, 0, 16, 0)
-            };
-            menu.Items.Add(brandSubtitle);
-
             menu.Items.Add(proj);
-            menu.Items.Add(tools);
+            menu.Items.Add(editMenu);
+            menu.Items.Add(viewMenu);
             menu.Items.Add(assetsMenu);
             menu.Items.Add(simMenu);
             menu.Items.Add(dataMenu);
             menu.Items.Add(educationMenu);
-            menu.Items.Add(new ToolStripSeparator());
-
-            var quickSaveButton = new ToolStripButton("Save")
-            {
-                DisplayStyle = ToolStripItemDisplayStyle.Text
-            };
-            quickSaveButton.Click += (_, __) => SaveProject();
-            var quickRunButton = new ToolStripButton("Run")
-            {
-                DisplayStyle = ToolStripItemDisplayStyle.Text
-            };
-            quickRunButton.Click += (_, __) => viewport.Invalidate();
-            menu.Items.Add(quickSaveButton);
-            menu.Items.Add(quickRunButton);
+            menu.Items.Add(new ToolStripMenuItem("Quick save", null, (_, __) => SaveProject()));
 
             MainMenuStrip = menu;
 
@@ -467,15 +491,22 @@ float lastError = 0;
             centerLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 52f));
             centerLayout.RowStyles.Add(new RowStyle(SizeType.Absolute, 66f));
             center.Controls.Add(centerLayout);
+            var workspaceBody = new Panel
+            {
+                Dock = DockStyle.Fill
+            };
+            workspaceBody.Controls.Add(center);
+            workspaceBody.Controls.Add(right);
+            workspaceBody.Controls.Add(left);
             contentHost = new Panel
             {
                 Dock = DockStyle.None,
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
             };
-            contentHost.Controls.Add(center);
-            contentHost.Controls.Add(right);
-            contentHost.Controls.Add(left);
+            contentHost.Controls.Add(workspaceBody);
+            contentHost.Controls.Add(BuildWorkspaceStrip());
             Controls.Add(contentHost);
+            BuildCustomTitleBar();
 
             // STATUS STRIP
             statusStrip = new StatusStrip
@@ -492,11 +523,14 @@ float lastError = 0;
             errorsStatus = new ToolStripStatusLabel(" | Errors: 0");
             statusStrip.Items.AddRange(new ToolStripItem[] { statusLabel, frameStatus, motorsStatus, batteryStatus, errorsStatus });
             Controls.Add(statusStrip);
-            Controls.Add(menu);
-            menu.BringToFront();
+            titleBarPanel.BringToFront();
             statusStrip.BringToFront();
-            Resize += (_, __) => LayoutRootPanels();
-            menu.SizeChanged += (_, __) => LayoutRootPanels();
+            Resize += (_, __) =>
+            {
+                LayoutRootPanels();
+                UpdateTitleMaximizeButton();
+            };
+            titleBarPanel.SizeChanged += (_, __) => LayoutRootPanels();
             statusStrip.SizeChanged += (_, __) => LayoutRootPanels();
             LayoutRootPanels();
             UpdateStatusBar();
@@ -781,11 +815,12 @@ float lastError = 0;
             var rightLayout = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                RowCount = 2,
+                RowCount = 3,
                 ColumnCount = 1
             };
-            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 72f));
-            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 28f));
+            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 34f));
+            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 24f));
+            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 42f));
             right.Controls.Add(rightLayout);
 
             var analysisCard = new RoundedPanel
@@ -856,6 +891,7 @@ float lastError = 0;
 
             rightLayout.Controls.Add(analysisCard, 0, 0);
             rightLayout.Controls.Add(warningsCard, 0, 1);
+            rightLayout.Controls.Add(BuildFeatureSetCard(), 0, 2);
 
 
 
@@ -1110,6 +1146,7 @@ float lastError = 0;
 
             ApplyTheme();
             NewProject();
+            SetWorkspace(WorkspaceArea.Assemble);
 
             ResumeLayout(true);
         }
@@ -1120,6 +1157,187 @@ float lastError = 0;
             if (shortcuts != Keys.None)
                 item.ShortcutKeys = shortcuts;
             return item;
+        }
+
+        void BuildCustomTitleBar()
+        {
+            titleBarPanel = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 36,
+                Padding = new Padding(6, 4, 6, 4)
+            };
+
+            titleLogo = new PictureBox
+            {
+                Dock = DockStyle.Left,
+                Width = 74,
+                SizeMode = PictureBoxSizeMode.Zoom,
+                Margin = new Padding(0)
+            };
+            if (logoImage != null)
+                titleLogo.Image = logoImage;
+
+            titleButtonPanel = new Panel
+            {
+                Dock = DockStyle.Right,
+                Width = 114
+            };
+
+            titleCloseButton = CreateTitleButton("btnWindowClose", "X");
+            titleCloseButton.Click += (_, __) => Close();
+            titleMaxButton = CreateTitleButton("btnWindowMax", "□");
+            titleMaxButton.Click += (_, __) => ToggleMaximizeRestore();
+            titleMinButton = CreateTitleButton("btnWindowMin", "—");
+            titleMinButton.Click += (_, __) => WindowState = FormWindowState.Minimized;
+
+            titleCloseButton.Dock = DockStyle.Right;
+            titleMaxButton.Dock = DockStyle.Right;
+            titleMinButton.Dock = DockStyle.Right;
+            titleButtonPanel.Controls.Add(titleCloseButton);
+            titleButtonPanel.Controls.Add(titleMaxButton);
+            titleButtonPanel.Controls.Add(titleMinButton);
+
+            titleMenuHost = new Panel
+            {
+                Dock = DockStyle.Fill,
+                Padding = new Padding(10, 0, 8, 0)
+            };
+            titleMenuHost.Controls.Add(menu);
+            titleMenuHost.Paint += (_, e) =>
+            {
+                using var pen = new Pen(Color.FromArgb(66, 131, 239), 1f);
+                var rect = new Rectangle(0, 0, Math.Max(0, titleMenuHost.Width - 1), Math.Max(0, titleMenuHost.Height - 1));
+                e.Graphics.DrawRectangle(pen, rect);
+            };
+
+            titleBarPanel.Controls.Add(titleMenuHost);
+            titleBarPanel.Controls.Add(titleButtonPanel);
+            titleBarPanel.Controls.Add(titleLogo);
+            Controls.Add(titleBarPanel);
+
+            WireTitleDrag(titleBarPanel);
+            WireTitleDrag(titleLogo);
+            WireTitleDrag(titleMenuHost);
+            UpdateTitleMaximizeButton();
+        }
+
+        Button CreateTitleButton(string name, string text)
+        {
+            return new Button
+            {
+                Name = name,
+                Text = text,
+                Width = 38,
+                FlatStyle = FlatStyle.Flat,
+                FlatAppearance = { BorderSize = 0 },
+                TabStop = false
+            };
+        }
+
+        void WireTitleDrag(Control control)
+        {
+            control.MouseDown += (_, e) =>
+            {
+                if (e.Button != MouseButtons.Left) return;
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+            };
+            control.DoubleClick += (_, __) => ToggleMaximizeRestore();
+        }
+
+        void ToggleMaximizeRestore()
+        {
+            WindowState = WindowState == FormWindowState.Maximized
+                ? FormWindowState.Normal
+                : FormWindowState.Maximized;
+            UpdateTitleMaximizeButton();
+        }
+
+        void UpdateTitleMaximizeButton()
+        {
+            if (titleMaxButton == null || titleMaxButton.IsDisposed) return;
+            titleMaxButton.Text = WindowState == FormWindowState.Maximized ? "❐" : "□";
+        }
+
+        protected override void OnHandleCreated(EventArgs e)
+        {
+            base.OnHandleCreated(e);
+            UpdateMaximizedBounds();
+            EnableWindowEffects();
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            UpdateMaximizedBounds();
+            Invalidate();
+        }
+
+        void UpdateMaximizedBounds()
+        {
+            var screen = Screen.FromHandle(Handle);
+            MaximizedBounds = screen.WorkingArea;
+        }
+
+        void EnableWindowEffects()
+        {
+            try
+            {
+                // Rounded corners / native frame rendering hint for modern Windows.
+                int cornerPref = 2; // DWMWCP_ROUND
+                DwmSetWindowAttribute(Handle, 33, ref cornerPref, sizeof(int));
+
+                var shadowMargins = new MARGINS { Left = 1, Right = 1, Top = 1, Bottom = 1 };
+                DwmExtendFrameIntoClientArea(Handle, ref shadowMargins);
+            }
+            catch
+            {
+                // Keep working on older Windows without DWM attributes.
+            }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_NCHITTEST && FormBorderStyle == FormBorderStyle.None && WindowState == FormWindowState.Normal)
+            {
+                base.WndProc(ref m);
+                if ((int)m.Result == HTCLIENT)
+                {
+                    Point p = PointToClient(LParamToPoint(m.LParam));
+                    bool left = p.X <= RESIZE_BORDER;
+                    bool right = p.X >= Width - RESIZE_BORDER;
+                    bool top = p.Y <= RESIZE_BORDER;
+                    bool bottom = p.Y >= Height - RESIZE_BORDER;
+
+                    if (left && top) m.Result = (IntPtr)HTTOPLEFT;
+                    else if (right && top) m.Result = (IntPtr)HTTOPRIGHT;
+                    else if (left && bottom) m.Result = (IntPtr)HTBOTTOMLEFT;
+                    else if (right && bottom) m.Result = (IntPtr)HTBOTTOMRIGHT;
+                    else if (left) m.Result = (IntPtr)HTLEFT;
+                    else if (right) m.Result = (IntPtr)HTRIGHT;
+                    else if (top) m.Result = (IntPtr)HTTOP;
+                    else if (bottom) m.Result = (IntPtr)HTBOTTOM;
+                }
+                return;
+            }
+
+            base.WndProc(ref m);
+        }
+
+        static Point LParamToPoint(IntPtr lParam)
+        {
+            int value = lParam.ToInt32();
+            return new Point((short)(value & 0xFFFF), (short)((value >> 16) & 0xFFFF));
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            if (WindowState == FormWindowState.Maximized) return;
+
+            using var pen = new Pen(darkMode ? Color.FromArgb(54, 67, 92) : Color.FromArgb(184, 194, 214));
+            e.Graphics.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
         }
 
         void ConfigureTree(TreeView tree)
@@ -1491,10 +1709,10 @@ float lastError = 0;
         void LayoutRootPanels()
         {
             if (contentHost == null || contentHost.IsDisposed) return;
-            if (menu == null || menu.IsDisposed) return;
+            if (titleBarPanel == null || titleBarPanel.IsDisposed) return;
             if (statusStrip == null || statusStrip.IsDisposed) return;
 
-            int top = menu.Bottom + 2;
+            int top = titleBarPanel.Bottom + 2;
             int bottom = statusStrip.Height;
             int width = Math.Max(0, ClientSize.Width);
             int height = Math.Max(0, ClientSize.Height - top - bottom);
@@ -1561,10 +1779,25 @@ float lastError = 0;
 
             if (menu != null)
             {
-                menu.BackColor = palette.Surface;
-                menu.ForeColor = palette.TextPrimary;
+                menu.BackColor = Color.FromArgb(204, 204, 204);
+                menu.ForeColor = Color.FromArgb(18, 18, 18);
                 menu.Renderer = toolStripRenderer;
                 ApplyToolStripTheme(menu.Items, palette);
+            }
+
+            if (titleBarPanel != null)
+            {
+                titleBarPanel.BackColor = darkMode
+                    ? Color.FromArgb(24, 24, 24)
+                    : Color.FromArgb(40, 40, 40);
+            }
+            if (titleMenuHost != null)
+            {
+                titleMenuHost.BackColor = Color.FromArgb(206, 210, 216);
+            }
+            if (titleButtonPanel != null)
+            {
+                titleButtonPanel.BackColor = Color.FromArgb(228, 228, 228);
             }
 
             if (statusStrip != null)
@@ -1591,6 +1824,30 @@ float lastError = 0;
                 ApplyContextMenuTheme(projectContextMenu);
             if (libraryContextMenu != null)
                 ApplyContextMenuTheme(libraryContextMenu);
+
+            ApplyWorkspaceStripTheme();
+
+            if (titleMinButton != null)
+            {
+                titleMinButton.ForeColor = Color.FromArgb(26, 26, 26);
+                titleMinButton.BackColor = Color.FromArgb(238, 238, 238);
+                titleMinButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(223, 223, 223);
+                titleMinButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(210, 210, 210);
+            }
+            if (titleMaxButton != null)
+            {
+                titleMaxButton.ForeColor = Color.FromArgb(26, 26, 26);
+                titleMaxButton.BackColor = Color.FromArgb(238, 238, 238);
+                titleMaxButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(223, 223, 223);
+                titleMaxButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(210, 210, 210);
+            }
+            if (titleCloseButton != null)
+            {
+                titleCloseButton.ForeColor = Color.FromArgb(26, 26, 26);
+                titleCloseButton.BackColor = Color.FromArgb(238, 238, 238);
+                titleCloseButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(232, 76, 61);
+                titleCloseButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(210, 56, 43);
+            }
 
             viewport?.Invalidate();
             Invalidate(true);
@@ -1622,15 +1879,61 @@ float lastError = 0;
                     listBox.BackColor = palette.SurfaceAlt;
                     listBox.ForeColor = palette.TextPrimary;
                 }
+                else if (child is ToolStrip strip)
+                {
+                    bool isTitleMenu = strip == menu;
+                    strip.BackColor = isTitleMenu ? Color.FromArgb(204, 204, 204) : palette.Surface;
+                    strip.ForeColor = isTitleMenu ? Color.FromArgb(18, 18, 18) : palette.TextPrimary;
+                    strip.Renderer = toolStripRenderer;
+                    ApplyToolStripTheme(strip.Items, palette);
+                }
+                else if (child is TabControl tabs)
+                {
+                    tabs.BackColor = palette.Surface;
+                    tabs.ForeColor = palette.TextPrimary;
+                }
+                else if (child is TabPage tabPage)
+                {
+                    tabPage.BackColor = palette.SurfaceAlt;
+                    tabPage.ForeColor = palette.TextPrimary;
+                }
+                else if (child is TextBox textBox)
+                {
+                    textBox.BackColor = palette.SurfaceAlt;
+                    textBox.ForeColor = palette.TextPrimary;
+                    textBox.BorderStyle = BorderStyle.FixedSingle;
+                }
+                else if (child is NumericUpDown numeric)
+                {
+                    numeric.BackColor = palette.SurfaceAlt;
+                    numeric.ForeColor = palette.TextPrimary;
+                    numeric.BorderStyle = BorderStyle.FixedSingle;
+                }
+                else if (child is ComboBox combo)
+                {
+                    combo.BackColor = palette.SurfaceAlt;
+                    combo.ForeColor = palette.TextPrimary;
+                    combo.FlatStyle = FlatStyle.Flat;
+                }
+                else if (child is CheckBox check)
+                {
+                    check.BackColor = Color.Transparent;
+                    check.ForeColor = palette.TextPrimary;
+                }
                 else if (child is Button button)
                 {
                     button.FlatStyle = FlatStyle.Flat;
-                    button.FlatAppearance.BorderSize = 1;
-                    button.FlatAppearance.BorderColor = palette.Border;
                     button.Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point);
 
-                    if (button.Name == "btnExportConfig")
+                    if (button.Name.StartsWith("btnWindow", StringComparison.Ordinal))
                     {
+                        button.FlatAppearance.BorderSize = 0;
+                        button.Font = new Font("Segoe UI", 9f, FontStyle.Regular, GraphicsUnit.Point);
+                    }
+                    else if (button.Name == "btnExportConfig")
+                    {
+                        button.FlatAppearance.BorderSize = 1;
+                        button.FlatAppearance.BorderColor = palette.Border;
                         button.BackColor = Color.FromArgb(236, 144, 48);
                         button.ForeColor = Color.White;
                         button.FlatAppearance.MouseOverBackColor = Color.FromArgb(222, 132, 39);
@@ -1638,6 +1941,8 @@ float lastError = 0;
                     }
                     else if (button.Name == "btnRunSimulation")
                     {
+                        button.FlatAppearance.BorderSize = 1;
+                        button.FlatAppearance.BorderColor = palette.Border;
                         button.BackColor = Color.FromArgb(225, 234, 249);
                         button.ForeColor = palette.TextPrimary;
                         button.FlatAppearance.MouseOverBackColor = Color.FromArgb(214, 226, 245);
@@ -1645,6 +1950,8 @@ float lastError = 0;
                     }
                     else
                     {
+                        button.FlatAppearance.BorderSize = 1;
+                        button.FlatAppearance.BorderColor = palette.Border;
                         button.BackColor = palette.Accent;
                         button.ForeColor = Color.White;
                         button.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 126, 231);
@@ -1659,7 +1966,24 @@ float lastError = 0;
                 }
                 else if (child is Panel panel)
                 {
-                    panel.BackColor = palette.WindowBackground;
+                    if (panel == titleBarPanel)
+                    {
+                        panel.BackColor = darkMode
+                            ? Color.FromArgb(24, 24, 24)
+                            : Color.FromArgb(40, 40, 40);
+                    }
+                    else if (panel == titleMenuHost)
+                    {
+                        panel.BackColor = Color.FromArgb(206, 210, 216);
+                    }
+                    else if (panel == titleButtonPanel)
+                    {
+                        panel.BackColor = Color.FromArgb(228, 228, 228);
+                    }
+                    else
+                    {
+                        panel.BackColor = palette.WindowBackground;
+                    }
                 }
             }
 
@@ -1676,10 +2000,13 @@ float lastError = 0;
             {
                 if (item is ToolStripSeparator) continue;
 
-                item.BackColor = palette.Surface;
-                item.ForeColor = item is ToolStripLabel lbl && (lbl.Text?.Contains("Component-Level") ?? false)
-                    ? palette.TextMuted
-                    : palette.TextPrimary;
+                bool isTitleMenuItem = menu != null && item.Owner == menu;
+                item.BackColor = isTitleMenuItem ? Color.FromArgb(204, 204, 204) : palette.Surface;
+                item.ForeColor = isTitleMenuItem
+                    ? Color.FromArgb(18, 18, 18)
+                    : (item is ToolStripLabel lbl && (lbl.Text?.Contains("Component-Level") ?? false)
+                        ? palette.TextMuted
+                        : palette.TextPrimary);
 
                 if (item is ToolStripDropDownItem dd)
                 {
@@ -1755,6 +2082,11 @@ float lastError = 0;
                 _ => 1f
             };
             throttle = Math.Clamp(throttle * firmwareControlGain, 0f, 1f);
+            float responseDelaySec = Math.Max(0.001f, featureProfile.EscResponseDelayMs / 1000f);
+            float responseAlpha = dt / (responseDelaySec + dt);
+            escDelayedThrottle += (throttle - escDelayedThrottle) * responseAlpha;
+            float commandThrottle = Math.Clamp(escDelayedThrottle, 0f, 1f);
+            float propellerThrustScale = GetPropellerThrustScale();
 
             foreach (var p in project.Instances)
             {
@@ -1769,9 +2101,15 @@ float lastError = 0;
 
                     float maxRpm = motorAsset?.MaxRPM > 0 ? motorAsset.MaxRPM : PhysicsDatabase.MaxRPM(motorName);
                     float maxCurrent = motorAsset?.MaxCurrent > 0 ? motorAsset.MaxCurrent : PhysicsDatabase.MaxCurrent(motorName);
-                    float rpm = throttle * maxRpm;
-                    totalThrustN += ThrustFromRPM(rpm);
-                    totalCurrentA += throttle * maxCurrent;
+                    float kvSource = motorAsset?.KV > 0 ? motorAsset.KV : featureProfile.MotorKvOverride;
+                    float kvScale = Math.Clamp(kvSource / 1750f, 0.6f, 1.45f);
+                    float rpm = commandThrottle * maxRpm * (0.82f + kvScale * 0.18f);
+                    float torqueFactor = EvaluateCurve(motorAsset?.TorqueCurve, commandThrottle, 1f);
+                    float efficiencyFactor = EvaluateCurve(motorAsset?.EfficiencyMap, commandThrottle, 0.83f) * featureProfile.EfficiencyBias;
+                    float perMotorThrust = ThrustFromRPM(rpm) * propellerThrustScale * torqueFactor * featureProfile.TorqueFactor;
+                    totalThrustN += perMotorThrust;
+                    float limitedCurrent = commandThrottle * maxCurrent / Math.Clamp(efficiencyFactor, 0.42f, 1.3f);
+                    totalCurrentA += Math.Min(limitedCurrent, featureProfile.EscCurrentLimitA);
                 }
                 else if (p.Type == PartType.Frame)
                 {
@@ -1801,6 +2139,14 @@ float lastError = 0;
                 }
             }
 
+            float profileCgOffsetCm = MathF.Sqrt(
+                featureProfile.CgOffsetXcm * featureProfile.CgOffsetXcm +
+                featureProfile.CgOffsetYcm * featureProfile.CgOffsetYcm);
+            frameCgOffsetCm = Math.Max(frameCgOffsetCm, profileCgOffsetCm);
+            frameDensity = Math.Max(0.3f, featureProfile.MaterialDensity);
+            batteryMaxDischargeC = Math.Max(5f, featureProfile.BatteryCRating);
+            float weightBiasFactor = Math.Abs(featureProfile.WeightBiasPct) * 0.01f;
+
             totalMassKg += payloadMassKg;
             if (motorCount == 0) return;
 
@@ -1815,6 +2161,11 @@ float lastError = 0;
                 SimulationMode.Swarm => 0.95f,
                 _ => 1f
             };
+            if (simulationMode == SimulationMode.Swarm)
+            {
+                float swarmEffect = Math.Clamp(1f + (featureProfile.SwarmSize - 4) * 0.01f, 0.9f, 1.1f);
+                modeThrustMultiplier *= swarmEffect;
+            }
 
             float effectiveThrust = totalThrustN * modeThrustMultiplier;
             effectiveThrust *= Math.Clamp(1f - yawImbalancePct * 0.0025f, 0.70f, 1f);
@@ -1833,7 +2184,12 @@ float lastError = 0;
 
             float windPenalty = Math.Clamp(1f - environmentModel.WindSpeedMps * 0.02f, 0.65f, 1f);
             float turbulenceNoise = ((float)random.NextDouble() * 2f - 1f) * environmentModel.TurbulenceStrength * 0.06f;
-            effectiveThrust *= Math.Clamp(windPenalty + turbulenceNoise, 0.55f, 1.08f);
+            float aerodynamicPenalty = Math.Clamp(
+                1f - environmentModel.DragCoefficient * (0.60f + featureProfile.PropBladeCount * 0.08f),
+                0.72f,
+                1.04f);
+            float frameArmPenalty = Math.Clamp(1f - Math.Abs(featureProfile.ArmLengthMm - 150f) * 0.0008f, 0.82f, 1f);
+            effectiveThrust *= Math.Clamp(windPenalty + turbulenceNoise, 0.55f, 1.08f) * aerodynamicPenalty * frameArmPenalty;
 
             if (environmentModel.EnableGroundEffect && altitude < 0.7f)
             {
@@ -1864,10 +2220,13 @@ float lastError = 0;
                 BatteryChemistry.LiHV => 0.016f,
                 _ => 0.020f
             };
+            chemistrySagCoeff *= featureProfile.BatterySagBias;
 
-            if (faultInjection.EscThermalCutback)
+            float escThermalLimit = Math.Max(55f, featureProfile.EscThermalLimitC);
+            bool escOverThermal = escTempC > escThermalLimit;
+            if (faultInjection.EscThermalCutback || escOverThermal)
             {
-                float derate = Math.Clamp(1f - ((escTempC - 70f) / 90f), 0.5f, 1f);
+                float derate = Math.Clamp(1f - ((escTempC - escThermalLimit) / 80f), 0.45f, 1f);
                 totalCurrentA *= derate;
                 effectiveThrust *= Math.Clamp(derate + 0.08f, 0.55f, 1f);
             }
@@ -1879,13 +2238,14 @@ float lastError = 0;
             batteryRemainingAh -= (totalCurrentA * dt) / 3600f;
             batteryRemainingAh = Math.Clamp(batteryRemainingAh, 0, Math.Max(0.1f, batteryCapacityAh));
 
-            float sag = chemistrySagCoeff * totalCurrentA;
+            float stateOfCharge = batteryCapacityAh > 0.01f ? batteryRemainingAh / batteryCapacityAh : 0f;
+            float sag = chemistrySagCoeff * totalCurrentA * (1f + (1f - stateOfCharge) * 0.45f);
             float maxDischargeA = batteryCapacityAh * Math.Max(1f, batteryMaxDischargeC);
             if (maxDischargeA > 0f && totalCurrentA > maxDischargeA)
                 sag += (totalCurrentA - maxDischargeA) * 0.015f;
             batteryVoltage = Math.Max(0, batteryVoltageNominal - sag);
 
-            motorTempC += (totalCurrentA * 0.12f + throttle * 8f) * dt;
+            motorTempC += (totalCurrentA * 0.12f + commandThrottle * 8f) * dt;
             motorTempC -= (motorTempC - 28f) * dt * 0.04f;
             escTempC += (totalCurrentA * 0.08f + (faultInjection.EscThermalCutback ? 4f : 0f)) * dt;
             escTempC -= (escTempC - 27f) * dt * 0.05f;
@@ -1905,6 +2265,7 @@ float lastError = 0;
                 Math.Abs(payloadOffsetCm) * 3.8f +
                 frameCgOffsetCm * 2.1f +
                 frameDensity * 5.0f +
+                Math.Abs(featureProfile.ArmLengthMm - 150f) * 0.03f +
                 environmentModel.WindSpeedMps * 1.8f, 0f, 180f);
 
             stabilityMarginPct = Math.Clamp(
@@ -1913,12 +2274,13 @@ float lastError = 0;
                 environmentModel.TurbulenceStrength * 46f -
                 payloadOffsetCm * 2.2f -
                 frameCgOffsetCm * 1.7f -
+                weightBiasFactor * 45f -
                 yawImbalancePct * 0.55f -
                 (sensorProfile == SensorProfile.Degraded ? 12f : 0f) -
                 (faultInjection.GpsDrop ? 10f : 0f), 4f, 100f);
 
             escFailureRiskPct = Math.Clamp(
-                Math.Max(0f, escTempC - 68f) * 1.15f +
+                Math.Max(0f, escTempC - escThermalLimit) * 1.35f +
                 Math.Max(0f, totalCurrentA - 55f) * 0.65f +
                 (faultInjection.EscThermalCutback ? 12f : 0f), 0f, 100f);
 
@@ -2483,6 +2845,74 @@ void DrawPhysicsHUD(Graphics g)
     UpdateStatusBar();
 }
 
+        void DeleteSelectedPart()
+        {
+            if (project == null || selected == null) return;
+
+            if (selected.Type == PartType.Frame)
+            {
+                MessageBox.Show("Cannot delete the frame.", "Delete", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            project.Instances.Remove(selected);
+            selected = null;
+            OnProjectStructureChanged();
+        }
+
+        void DuplicateSelectedPart()
+        {
+            if (project == null || selected == null) return;
+
+            if (selected.Type == PartType.Frame)
+            {
+                MessageBox.Show("Frame duplication is not supported.", "Duplicate", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            if (selected.Type == PartType.Battery && project.Instances.Any(i => i.Type == PartType.Battery))
+            {
+                MessageBox.Show("Only one battery can be attached to the frame.", "Duplicate", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var clone = new PlacedInstance
+            {
+                AssetId = selected.AssetId,
+                Type = selected.Type,
+                Position = new PointF(selected.Position.X + 14, selected.Position.Y + 14),
+                MountIndex = selected.MountIndex
+            };
+
+            if (clone.Type == PartType.Motor)
+            {
+                int nextMount = Enumerable.Range(0, FrameDB.XFrame.MotorMounts.Length)
+                    .FirstOrDefault(i => !project.Instances.Any(p => p.Type == PartType.Motor && p.MountIndex == i), -1);
+
+                if (nextMount < 0)
+                {
+                    MessageBox.Show("No free motor mount available.", "Duplicate", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                clone.MountIndex = nextMount;
+            }
+
+            project.Instances.Add(clone);
+            selected = clone;
+            OnProjectStructureChanged();
+        }
+
+        void ClearFaultInjection()
+        {
+            faultInjection.MotorFailure = false;
+            faultInjection.SensorNoise = false;
+            faultInjection.GpsDrop = false;
+            faultInjection.EscThermalCutback = false;
+            UpdateStatusBar();
+            viewport.Invalidate();
+        }
+
 
         // ================= UX =================
         void ToggleDark()
@@ -2538,7 +2968,7 @@ void DrawPhysicsHUD(Graphics g)
 
             if (project == null)
             {
-                statusLabel.Text = "Ready";
+                statusLabel.Text = $"Workspace: {WorkspaceDisplayName(currentWorkspace)} | Ready";
                 frameStatus.Text = " | Frame: 0";
                 motorsStatus.Text = " | Motors: 0";
                 batteryStatus.Text = " | Battery: None";
@@ -2559,6 +2989,7 @@ void DrawPhysicsHUD(Graphics g)
                     warningsList.Items.Clear();
                     warningsList.Items.Add("Start by placing a frame.");
                 }
+                UpdateFeatureSetPanel();
                 return;
             }
 
@@ -2629,7 +3060,7 @@ void DrawPhysicsHUD(Graphics g)
             int criticalAlerts = 0;
 
             statusLabel.Text = pendingAddMode == null
-                ? $"Mode: {simulationMode} | FW: {firmwareProfile} | Sensors: {sensorProfile}"
+                ? $"Workspace: {WorkspaceDisplayName(currentWorkspace)} | Mode: {simulationMode} | FW: {firmwareProfile} | Sensors: {sensorProfile}"
                 : $"Placing {pendingAddName ?? pendingAddMode.ToString()}";
             frameStatus.Text = $" | Frame: {frames}";
             motorsStatus.Text = $" | Motors: {motors}";
@@ -2690,6 +3121,7 @@ void DrawPhysicsHUD(Graphics g)
             }
 
             errorsStatus.Text = $" | Errors: {Math.Max(errors, criticalAlerts)}";
+            UpdateFeatureSetPanel();
         }
 
         // ===== Asset management & editor =====
@@ -3731,6 +4163,7 @@ void DrawPhysicsHUD(Graphics g)
             imuVibrationPct = 0f;
             escFailureRiskPct = 0f;
             telemetryDecimator = 0;
+            escDelayedThrottle = 0f;
             telemetry.Clear();
             crashCount = 0;
             lastCrashSummary = "No crash events";
