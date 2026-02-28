@@ -1,3 +1,4 @@
+#nullable disable
 using System.Windows.Forms;
 
 namespace WinFormsCounter
@@ -48,7 +49,7 @@ namespace WinFormsCounter
             this.PerformLayout();
         }
 
-        private void button_Click(object? sender, EventArgs e)
+        private void button_Click(object sender, EventArgs e)
         {
             // Event handler stub (designer referenced). No-op.
         }
@@ -63,3 +64,4 @@ namespace WinFormsCounter
         }
     }
 }
+#nullable restore
