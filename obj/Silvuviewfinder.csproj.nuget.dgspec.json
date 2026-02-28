@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\krish\\Silvuviewfinder\\Silvuviewfinder.csproj": {}
+    "D:\\Silvu-viewfinder\\Silvuviewfinder.csproj": {}
   },
   "projects": {
-    "C:\\Users\\krish\\Silvuviewfinder\\Silvuviewfinder.csproj": {
+    "D:\\Silvu-viewfinder\\Silvuviewfinder.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\krish\\Silvuviewfinder\\Silvuviewfinder.csproj",
+        "projectUniqueName": "D:\\Silvu-viewfinder\\Silvuviewfinder.csproj",
         "projectName": "Silvuviewfinder",
-        "projectPath": "C:\\Users\\krish\\Silvuviewfinder\\Silvuviewfinder.csproj",
+        "projectPath": "D:\\Silvu-viewfinder\\Silvuviewfinder.csproj",
         "packagesPath": "C:\\Users\\krish\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\krish\\Silvuviewfinder\\obj\\",
+        "outputPath": "D:\\Silvu-viewfinder\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\krish\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -62,7 +62,7 @@
               "privateAssets": "none"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json",
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json",
           "packagesToPrune": {
             "Microsoft.CSharp": "(,4.7.32767]",
             "Microsoft.VisualBasic": "(,10.4.32767]",
