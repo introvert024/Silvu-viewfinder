@@ -29,14 +29,16 @@ namespace SilvuViewfinder
         Point mousePos;
 
         MenuStrip menu = null!;
-        Panel titleBarPanel = null!, titleMenuHost = null!, titleButtonPanel = null!;
+        Panel titleBarPanel = null!, titleMenuHost = null!;
+        FlowLayoutPanel titleButtonPanel = null!;
         PictureBox titleLogo = null!;
         Button titleMinButton = null!, titleMaxButton = null!, titleCloseButton = null!;
         TreeView projectTree = null!, libraryTree = null!;
         PictureBox viewport = null!;
         Label twrValueLabel = null!, hoverValueLabel = null!, flightValueLabel = null!, sagValueLabel = null!, tempValueLabel = null!;
-        Label massMetricLabel = null!, powerMetricLabel = null!, enduranceMetricLabel = null!, payloadMetricLabel = null!;
-        ListBox warningsList = null!;
+        Label cgValueLabel = null!, inertiaValueLabel = null!, yawValueLabel = null!;
+        Label missingValueLabel = null!, overcurrentValueLabel = null!, overheatValueLabel = null!, structuralValueLabel = null!;
+        Label allUpWeightLabel = null!, totalThrustLabel = null!, hoverCurrentLabel = null!, efficiencyIndexLabel = null!, stabilityIndexLabel = null!;
         Button saveBuildButton = null!, runSimButton = null!, exportConfigButton = null!;
         int uiRefreshTick = 0;
         readonly Random random = new Random();
@@ -71,7 +73,8 @@ namespace SilvuViewfinder
 
         // Status bar
         StatusStrip statusStrip = null!;
-        ToolStripStatusLabel statusLabel = null!, frameStatus = null!, motorsStatus = null!, batteryStatus = null!, errorsStatus = null!;
+        ToolStripStatusLabel workspaceStatus = null!, modeStatus = null!, firmwareStatus = null!, sensorsStatus = null!;
+        ToolStripStatusLabel statusSpacer = null!, errorsStatus = null!, simReadyStatus = null!;
 
         // clipboard for copy/paste of placed instances
         PlacedInstance? clipboardPart = null;
@@ -84,6 +87,10 @@ namespace SilvuViewfinder
         System.Windows.Forms.Timer renderTimer = null!;
         ToolStripProfessionalRenderer toolStripRenderer = null!;
         Panel contentHost = null!;
+        Panel topToolbarHost = null!;
+        TabControl modeTabs = null!;
+        Workspace currentWorkspace = Workspace.Assemble;
+        ToolStrip iconStrip = null!;
         SplitContainer navigationSplit = null!;
         Image? logoImage;
 
@@ -291,14 +298,14 @@ float lastError = 0;
             };
             logoImage = LoadBrandLogo();
 
-            var proj = new ToolStripMenuItem("File");
-            proj.DropDownItems.Add(CreateMenuItem("New", Keys.Control | Keys.N, (_,__) => NewProject()));
-            proj.DropDownItems.Add(CreateMenuItem("Open...", Keys.Control | Keys.O, (_,__) => OpenProject()));
-            proj.DropDownItems.Add(CreateMenuItem("Save", Keys.Control | Keys.S, (_,__) => SaveProject()));
-            proj.DropDownItems.Add(new ToolStripSeparator());
-            proj.DropDownItems.Add("Export Active Config...", null, (_, __) => exportConfigButton?.PerformClick());
-            proj.DropDownItems.Add(new ToolStripSeparator());
-            proj.DropDownItems.Add(CreateMenuItem("Exit", Keys.Alt | Keys.F4, (_,__) => Close()));
+            var fileMenu = new ToolStripMenuItem("File");
+            fileMenu.DropDownItems.Add(CreateMenuItem("New", Keys.Control | Keys.N, (_,__) => NewProject()));
+            fileMenu.DropDownItems.Add(CreateMenuItem("Open...", Keys.Control | Keys.O, (_,__) => OpenProject()));
+            fileMenu.DropDownItems.Add(CreateMenuItem("Save", Keys.Control | Keys.S, (_,__) => SaveProject()));
+            fileMenu.DropDownItems.Add(new ToolStripSeparator());
+            fileMenu.DropDownItems.Add("Export Active Config...", null, (_, __) => exportConfigButton?.PerformClick());
+            fileMenu.DropDownItems.Add(new ToolStripSeparator());
+            fileMenu.DropDownItems.Add(CreateMenuItem("Exit", Keys.Alt | Keys.F4, (_,__) => Close()));
 
             var editMenu = new ToolStripMenuItem("Edit");
             editMenu.DropDownItems.Add(CreateMenuItem("Delete Selected Part", Keys.Delete, (_, __) => DeleteSelectedPart()));
@@ -308,16 +315,7 @@ float lastError = 0;
 
             var viewMenu = new ToolStripMenuItem("View");
             viewMenu.DropDownItems.Add(CreateMenuItem("Toggle Dark Mode", Keys.Control | Keys.D, (_,__) => ToggleDark()));
-            var workspaceMenu = new ToolStripMenuItem("Workspace");
-            workspaceMenu.DropDownItems.Add("Assemble", null, (_, __) => SetWorkspace(WorkspaceArea.Assemble));
-            workspaceMenu.DropDownItems.Add("Configurations", null, (_, __) => SetWorkspace(WorkspaceArea.Configurations));
-            workspaceMenu.DropDownItems.Add("Fluid / Air Simulation", null, (_, __) => SetWorkspace(WorkspaceArea.FluidAirSimulation));
-            workspaceMenu.DropDownItems.Add("3D Live Simulation", null, (_, __) => SetWorkspace(WorkspaceArea.Realtime3D));
-            workspaceMenu.DropDownItems.Add("Software Configuration", null, (_, __) => SetWorkspace(WorkspaceArea.SoftwareConfiguration));
-            viewMenu.DropDownItems.Add(new ToolStripSeparator());
-            viewMenu.DropDownItems.Add(workspaceMenu);
-
-            // ASSETS menu
+            
             var assetsMenu = new ToolStripMenuItem("Assets");
             assetsMenu.DropDownItems.Add(CreateMenuItem("Import Asset...", Keys.Control | Keys.I, (_,__) => ImportAsset()));
             var newAsset = new ToolStripMenuItem("New Asset");
@@ -330,139 +328,79 @@ float lastError = 0;
             newAsset.DropDownItems.Add("Receivers", null, (_,__) => CreateNewAsset("Receivers"));
             assetsMenu.DropDownItems.Add(newAsset);
 
-            var simMenu = new ToolStripMenuItem("Settings");
-            var modeMenu = new ToolStripMenuItem("Mode");
-            void AddModeItem(string text, SimulationMode mode)
-            {
-                var item = new ToolStripMenuItem(text) { Checked = simulationMode == mode, CheckOnClick = true };
-                item.Click += (_, __) =>
-                {
-                    SetSimulationMode(mode);
-                    foreach (ToolStripMenuItem mi in modeMenu.DropDownItems.OfType<ToolStripMenuItem>())
-                        mi.Checked = mi == item;
-                };
-                modeMenu.DropDownItems.Add(item);
-            }
-            AddModeItem("Manual FPV", SimulationMode.ManualFpv);
-            AddModeItem("Autonomous Mission", SimulationMode.AutonomousMission);
-            AddModeItem("Emergency Failure", SimulationMode.EmergencyFailure);
-            AddModeItem("Swarm", SimulationMode.Swarm);
-            AddModeItem("VTOL / Hybrid", SimulationMode.VtolHybrid);
-            AddModeItem("Heavy Lift", SimulationMode.HeavyLift);
-
-            var envMenu = new ToolStripMenuItem("Environment");
-            envMenu.DropDownItems.Add("Calm", null, (_, __) => ApplyEnvironmentPreset(0.5f, 0.1f, 0.07f));
-            envMenu.DropDownItems.Add("Breezy", null, (_, __) => ApplyEnvironmentPreset(3.0f, 0.2f, 0.09f));
-            envMenu.DropDownItems.Add("Windy", null, (_, __) => ApplyEnvironmentPreset(6.0f, 0.35f, 0.11f));
-            envMenu.DropDownItems.Add("Storm Test", null, (_, __) => ApplyEnvironmentPreset(10.0f, 0.5f, 0.16f));
-
-            var payloadMenu = new ToolStripMenuItem("Payload");
-            payloadMenu.DropDownItems.Add("None", null, (_, __) => SetPayload(PayloadType.None, 0f, 0f));
-            payloadMenu.DropDownItems.Add("Camera Gimbal", null, (_, __) => SetPayload(PayloadType.CameraGimbal, 0.18f, 3f));
-            payloadMenu.DropDownItems.Add("LiDAR Module", null, (_, __) => SetPayload(PayloadType.LiDAR, 0.26f, 4f));
-            payloadMenu.DropDownItems.Add("Delivery Box", null, (_, __) => SetPayload(PayloadType.DeliveryBox, 0.55f, 7f));
-
-            var faultMenu = new ToolStripMenuItem("Fault Injection");
-            var motorFailItem = new ToolStripMenuItem("Motor Failure") { CheckOnClick = true };
-            motorFailItem.CheckedChanged += (_, __) => faultInjection.MotorFailure = motorFailItem.Checked;
-            var sensorNoiseItem = new ToolStripMenuItem("Sensor Noise") { CheckOnClick = true };
-            sensorNoiseItem.CheckedChanged += (_, __) => faultInjection.SensorNoise = sensorNoiseItem.Checked;
-            var gpsDropItem = new ToolStripMenuItem("GPS Drop") { CheckOnClick = true };
-            gpsDropItem.CheckedChanged += (_, __) => faultInjection.GpsDrop = gpsDropItem.Checked;
-            var escCutItem = new ToolStripMenuItem("ESC Thermal Cutback") { CheckOnClick = true };
-            escCutItem.CheckedChanged += (_, __) => faultInjection.EscThermalCutback = escCutItem.Checked;
-            faultMenu.DropDownItems.Add(motorFailItem);
-            faultMenu.DropDownItems.Add(sensorNoiseItem);
-            faultMenu.DropDownItems.Add(gpsDropItem);
-            faultMenu.DropDownItems.Add(escCutItem);
-
-            var missionMenu = new ToolStripMenuItem("Mission");
-            missionMenu.DropDownItems.Add("Add Waypoint", null, (_, __) => AddWaypoint());
-            missionMenu.DropDownItems.Add("Clear Waypoints", null, (_, __) => { waypoints.Clear(); UpdateStatusBar(); viewport.Invalidate(); });
-            missionMenu.DropDownItems.Add("Add Survey Pattern (8)", null, (_, __) => AddSurveyPattern());
-
-            var controlMenu = new ToolStripMenuItem("Control Stack");
-
-            var pidMenu = new ToolStripMenuItem("PID Presets");
-            pidMenu.DropDownItems.Add("Cinematic", null, (_, __) => SetPidPreset(1.0f, 0.35f, 0.18f, "Cinematic"));
-            pidMenu.DropDownItems.Add("Balanced", null, (_, __) => SetPidPreset(1.2f, 0.40f, 0.20f, "Balanced"));
-            pidMenu.DropDownItems.Add("Aggressive", null, (_, __) => SetPidPreset(1.45f, 0.52f, 0.27f, "Aggressive"));
-
-            var firmwareMenu = new ToolStripMenuItem("Firmware Layer");
-            void AddFirmwareOption(string text, FirmwareProfile profile)
-            {
-                var item = new ToolStripMenuItem(text) { CheckOnClick = true, Checked = firmwareProfile == profile };
-                item.Click += (_, __) =>
-                {
-                    SetFirmwareProfile(profile);
-                    foreach (ToolStripMenuItem mi in firmwareMenu.DropDownItems.OfType<ToolStripMenuItem>())
-                        mi.Checked = mi == item;
-                };
-                firmwareMenu.DropDownItems.Add(item);
-            }
-            AddFirmwareOption("Betaflight", FirmwareProfile.Betaflight);
-            AddFirmwareOption("ArduPilot", FirmwareProfile.ArduPilot);
-            AddFirmwareOption("PX4", FirmwareProfile.PX4);
-
-            var sensorMenu = new ToolStripMenuItem("Sensor Model");
-            sensorMenu.DropDownItems.Add("Survey Grade", null, (_, __) => SetSensorProfile(SensorProfile.SurveyGrade));
-            sensorMenu.DropDownItems.Add("Nominal", null, (_, __) => SetSensorProfile(SensorProfile.Nominal));
-            sensorMenu.DropDownItems.Add("Degraded", null, (_, __) => SetSensorProfile(SensorProfile.Degraded));
-
-            var obstacleItem = new ToolStripMenuItem("Obstacle Detection") { CheckOnClick = true, Checked = obstacleAvoidanceEnabled };
-            obstacleItem.CheckedChanged += (_, __) =>
-            {
-                obstacleAvoidanceEnabled = obstacleItem.Checked;
-                UpdateStatusBar();
-            };
-
-            controlMenu.DropDownItems.Add(pidMenu);
-            controlMenu.DropDownItems.Add(firmwareMenu);
-            controlMenu.DropDownItems.Add(sensorMenu);
-            controlMenu.DropDownItems.Add(obstacleItem);
-            controlMenu.DropDownItems.Add(new ToolStripSeparator());
-            controlMenu.DropDownItems.Add("Run Pre-Flight Validation", null, (_, __) => RunPreFlightValidation());
-
-            simMenu.DropDownItems.Add(modeMenu);
-            simMenu.DropDownItems.Add(envMenu);
-            simMenu.DropDownItems.Add(payloadMenu);
-            simMenu.DropDownItems.Add(faultMenu);
-            simMenu.DropDownItems.Add(missionMenu);
-            simMenu.DropDownItems.Add(controlMenu);
+            var settingsMenu = new ToolStripMenuItem("Settings");
+            // This can be populated with items from the old "simMenu" if needed
 
             var dataMenu = new ToolStripMenuItem("Data");
             dataMenu.DropDownItems.Add("Telemetry Dashboard", null, (_, __) => ShowTelemetryDashboard());
             dataMenu.DropDownItems.Add("Export Telemetry CSV...", null, (_, __) => ExportTelemetryCsv());
             dataMenu.DropDownItems.Add("Export Telemetry JSON...", null, (_, __) => ExportTelemetryJson());
-            dataMenu.DropDownItems.Add("Crash Replay Analysis", null, (_, __) => ShowCrashReplayAnalysis());
-            dataMenu.DropDownItems.Add(new ToolStripSeparator());
-            dataMenu.DropDownItems.Add("Save Benchmark Snapshot", null, (_, __) => SaveBenchmarkSnapshot());
-            dataMenu.DropDownItems.Add("Compare Benchmarks", null, (_, __) => CompareBenchmarks());
-            dataMenu.DropDownItems.Add(new ToolStripSeparator());
-            dataMenu.DropDownItems.Add("Clear Telemetry", null, (_, __) => { telemetry.Clear(); UpdateStatusBar(); viewport.Invalidate(); });
 
-            var educationMenu = new ToolStripMenuItem("Education");
-            var educationToggle = new ToolStripMenuItem("Guided Explanations") { CheckOnClick = true };
-            educationToggle.CheckedChanged += (_, __) =>
-            {
-                educationMode = educationToggle.Checked;
-                if (educationMode)
-                    MessageBox.Show(GetEducationHint(), "Education Mode", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                UpdateStatusBar();
-            };
-            educationMenu.DropDownItems.Add(educationToggle);
-
-            menu.Items.Add(proj);
+            var workspaceMenu = new ToolStripMenuItem("Workspace");
+            
+            menu.Items.Add(fileMenu);
             menu.Items.Add(editMenu);
             menu.Items.Add(viewMenu);
             menu.Items.Add(assetsMenu);
-            menu.Items.Add(simMenu);
+            menu.Items.Add(settingsMenu);
             menu.Items.Add(dataMenu);
-            menu.Items.Add(educationMenu);
-            menu.Items.Add(new ToolStripMenuItem("Quick save", null, (_, __) => SaveProject()));
+            menu.Items.Add(workspaceMenu);
 
             MainMenuStrip = menu;
 
+            // MODE TABS
+            modeTabs = new TabControl { Dock = DockStyle.Fill, Appearance = TabAppearance.Normal, ItemSize = new Size(80, 24), SizeMode = TabSizeMode.Fixed};
+            var modes = new[] { "Build", "Config", "Software", "Testing", "Simulation", "Debug", "Protocols", "Telemetry" };
+            foreach (var mode in modes)
+            {
+                modeTabs.TabPages.Add(new TabPage(mode));
+            }
+
+            // ICON STRIP
+            iconStrip = new ToolStrip
+            {
+                GripStyle = ToolStripGripStyle.Hidden,
+                Padding = new Padding(5, 2, 5, 2),
+                RenderMode = ToolStripRenderMode.Professional,
+                Renderer = toolStripRenderer
+            };
+            void AddRibbonGroup(string title, params string[] items)
+            {
+                var titleLabel = new ToolStripLabel(title)
+                {
+                    Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point),
+                    Margin = new Padding(4, 1, 8, 1)
+                };
+                iconStrip.Items.Add(titleLabel);
+
+                for (int i = 0; i < items.Length; i++)
+                {
+                    var button = new ToolStripButton(items[i])
+                    {
+                        DisplayStyle = ToolStripItemDisplayStyle.Text,
+                        AutoSize = true,
+                        Margin = new Padding(0, 1, i == items.Length - 1 ? 8 : 6, 1)
+                    };
+                    iconStrip.Items.Add(button);
+                }
+
+            }
+
+            AddRibbonGroup("Create", "Add Frame", "Add Motor", "Add ESC", "Add Battery");
+            iconStrip.Items.Add(new ToolStripSeparator());
+            AddRibbonGroup("Modify", "Move", "Rotate", "Scale", "Replace");
+            iconStrip.Items.Add(new ToolStripSeparator());
+            AddRibbonGroup("Analyze", "Mass", "CG", "Inertia", "Power", "Thermal");
+            iconStrip.Items.Add(new ToolStripSeparator());
+            AddRibbonGroup("Assemble", "Auto Arrange", "Validate Build");
+
+            var modeTabsHost = new Panel { Dock = DockStyle.Top, Height = 28, Padding = new Padding(outerGutter, 0, outerGutter, 0) };
+            modeTabsHost.Controls.Add(modeTabs);
+
+            topToolbarHost = new Panel { Dock = DockStyle.Top, Height = 60 };
+            topToolbarHost.Controls.Add(iconStrip);
+            topToolbarHost.Controls.Add(modeTabsHost);
+            
             // LAYOUT
             var left = new Panel
             {
@@ -504,9 +442,9 @@ float lastError = 0;
                 Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right
             };
             contentHost.Controls.Add(workspaceBody);
-            contentHost.Controls.Add(BuildWorkspaceStrip());
             Controls.Add(contentHost);
             BuildCustomTitleBar();
+            Controls.Add(topToolbarHost);
 
             // STATUS STRIP
             statusStrip = new StatusStrip
@@ -516,14 +454,26 @@ float lastError = 0;
                 RenderMode = ToolStripRenderMode.Professional,
                 Renderer = toolStripRenderer
             };
-            statusLabel = new ToolStripStatusLabel("Ready");
-            frameStatus = new ToolStripStatusLabel(" | Frame: 0");
-            motorsStatus = new ToolStripStatusLabel(" | Motors: 0");
-            batteryStatus = new ToolStripStatusLabel(" | Battery: None");
-            errorsStatus = new ToolStripStatusLabel(" | Errors: 0");
-            statusStrip.Items.AddRange(new ToolStripItem[] { statusLabel, frameStatus, motorsStatus, batteryStatus, errorsStatus });
+            workspaceStatus = new ToolStripStatusLabel("Workspace: Assemble");
+            modeStatus = new ToolStripStatusLabel(" | Mode: Manual");
+            firmwareStatus = new ToolStripStatusLabel(" | Firmware: Betaflight");
+            sensorsStatus = new ToolStripStatusLabel(" | Sensors: Nominal");
+            statusSpacer = new ToolStripStatusLabel { Spring = true };
+            errorsStatus = new ToolStripStatusLabel("Errors: 0");
+            simReadyStatus = new ToolStripStatusLabel(" | Simulation Ready: No");
+            statusStrip.Items.AddRange(new ToolStripItem[]
+            {
+                workspaceStatus,
+                modeStatus,
+                firmwareStatus,
+                sensorsStatus,
+                statusSpacer,
+                errorsStatus,
+                simReadyStatus
+            });
             Controls.Add(statusStrip);
             titleBarPanel.BringToFront();
+            topToolbarHost.BringToFront();
             statusStrip.BringToFront();
             Resize += (_, __) =>
             {
@@ -643,15 +593,17 @@ float lastError = 0;
             {
                 if (e.Item is TreeNode n && n.Parent != null)
                 {
-                    dragging = new LibraryPart { Category = n.Parent.Text, Name = n.Text };
+                    var category = n.Parent.Tag as string ?? n.Parent.Text;
+                    dragging = new LibraryPart { Category = category, Name = n.Text };
                     DoDragDrop(dragging, DragDropEffects.Copy);
                 }
             };
             libraryTree.NodeMouseDoubleClick += (s, e) =>
             {
+                if (e.Node == null || e.Node.Parent == null) return;
                 if (project == null) return;
-
-                if (e.Node?.Parent?.Text == "Frames")
+                var category = e.Node.Parent.Tag as string ?? e.Node.Parent.Text;
+                if (category == "Frames")
                 {
                     project.Instances.Clear();
 
@@ -667,7 +619,7 @@ float lastError = 0;
                     return; 
                 }
 
-                if (e.Node?.Parent?.Text == "Motors")
+                if (category == "Motors")
                 {
                     // next click in viewport places motor
                     pendingAddMode = PartType.Motor;
@@ -676,7 +628,7 @@ float lastError = 0;
                     return;
                 }
 
-                if (e.Node?.Parent?.Text == "Batteries")
+                if (category == "Batteries")
                 {
                     pendingAddMode = PartType.Battery;
                     pendingAddName = e.Node?.Text;
@@ -729,7 +681,7 @@ float lastError = 0;
 
             var layersLabel = new Label
             {
-                Text = "LAYERS",
+                Text = "Active Build",
                 Dock = DockStyle.Top,
                 Height = 30,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -749,9 +701,12 @@ float lastError = 0;
             layersPanel.Controls.Add(projectTree);
             layersPanel.Controls.Add(layersLabel);
 
+            var searchBox = new TextBox { Dock = DockStyle.Top, PlaceholderText = "Search components..." };
+            searchBox.TextChanged += (_, __) => BuildLibrary(searchBox.Text);
+
             var partsLabel = new Label
             {
-                Text = "AVAILABLE PARTS",
+                Text = "Component Library",
                 Dock = DockStyle.Top,
                 Height = 30,
                 TextAlign = ContentAlignment.MiddleLeft,
@@ -769,6 +724,7 @@ float lastError = 0;
                 Padding = new Padding(10)
             };
             partsPanel.Controls.Add(libraryTree);
+            partsPanel.Controls.Add(searchBox);
             partsPanel.Controls.Add(partsLabel);
 
             navigationSplit.Panel1.Padding = new Padding(0, 0, 0, 8);
@@ -785,11 +741,12 @@ float lastError = 0;
                 if (e.Node == null || e.Node.Parent == null)
                     return;
 
-                string info = GetPartInfo(e.Node.Parent.Text, e.Node.Text);
+                var category = e.Node.Parent.Tag as string ?? e.Node.Parent.Text;
+                string info = GetPartInfo(category, e.Node.Text);
                 partToolTip.SetToolTip(libraryTree, info);
             };
 
-            Panel CreateAnalysisRow(string labelText, out Label valueLabel)
+            Panel CreateMetricRow(string labelText, out Label valueLabel)
             {
                 var row = new Panel { Dock = DockStyle.Top, Height = 34 };
                 var label = new Label
@@ -812,86 +769,79 @@ float lastError = 0;
                 return row;
             }
 
-            var rightLayout = new TableLayoutPanel
+            Label CreateSectionHeader(string text)
             {
-                Dock = DockStyle.Fill,
-                RowCount = 3,
-                ColumnCount = 1
-            };
-            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 34f));
-            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 24f));
-            rightLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 42f));
-            right.Controls.Add(rightLayout);
+                return new Label
+                {
+                    Text = text,
+                    Dock = DockStyle.Top,
+                    Height = 26,
+                    TextAlign = ContentAlignment.MiddleLeft,
+                    Padding = new Padding(2, 4, 0, 0),
+                    Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point)
+                };
+            }
 
-            var analysisCard = new RoundedPanel
+            var buildHealthCard = new RoundedPanel
             {
                 Dock = DockStyle.Fill,
                 CornerRadius = 14,
                 BorderThickness = 1,
                 Padding = new Padding(10)
             };
-            var analysisHeader = new Label
+            var buildHealthHeader = new Label
             {
-                Text = "BUILD ANALYSIS",
+                Text = "BUILD HEALTH",
                 Dock = DockStyle.Top,
                 Height = 30,
                 TextAlign = ContentAlignment.MiddleLeft,
                 Padding = new Padding(8, 0, 0, 0),
                 Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point)
             };
-            var analysisBody = new Panel
+            var buildHealthBody = new Panel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(4, 8, 4, 4)
+                Padding = new Padding(4, 8, 4, 4),
+                AutoScroll = true
             };
 
-            var r1 = CreateAnalysisRow("Thrust-to-Weight", out twrValueLabel);
-            var r2 = CreateAnalysisRow("Hover Throttle", out hoverValueLabel);
-            var r3 = CreateAnalysisRow("Flight Time Est.", out flightValueLabel);
-            var r4 = CreateAnalysisRow("Voltage Sag", out sagValueLabel);
-            var r5 = CreateAnalysisRow("Motor Temp", out tempValueLabel);
-            r1.Dock = DockStyle.Top;
-            r2.Dock = DockStyle.Top;
-            r3.Dock = DockStyle.Top;
-            r4.Dock = DockStyle.Top;
-            r5.Dock = DockStyle.Top;
-            analysisBody.Controls.Add(r5);
-            analysisBody.Controls.Add(r4);
-            analysisBody.Controls.Add(r3);
-            analysisBody.Controls.Add(r2);
-            analysisBody.Controls.Add(r1);
-            analysisCard.Controls.Add(analysisBody);
-            analysisCard.Controls.Add(analysisHeader);
+            var perfHeader = CreateSectionHeader("Performance");
+            var perf1 = CreateMetricRow("Thrust-to-Weight", out twrValueLabel);
+            var perf2 = CreateMetricRow("Hover Throttle", out hoverValueLabel);
+            var perf3 = CreateMetricRow("Estimated Flight Time", out flightValueLabel);
+            var perf4 = CreateMetricRow("Voltage Sag", out sagValueLabel);
+            var perf5 = CreateMetricRow("Motor Temperature", out tempValueLabel);
 
-            var warningsCard = new RoundedPanel
-            {
-                Dock = DockStyle.Fill,
-                CornerRadius = 14,
-                BorderThickness = 1,
-                Padding = new Padding(10)
-            };
-            var warningsHeader = new Label
-            {
-                Text = "BUILD WARNINGS",
-                Dock = DockStyle.Top,
-                Height = 30,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(8, 0, 0, 0),
-                Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point)
-            };
-            warningsList = new ListBox
-            {
-                Dock = DockStyle.Fill,
-                BorderStyle = BorderStyle.None,
-                IntegralHeight = false,
-                SelectionMode = SelectionMode.None
-            };
-            warningsCard.Controls.Add(warningsList);
-            warningsCard.Controls.Add(warningsHeader);
+            var stabilityHeader = CreateSectionHeader("Stability");
+            var stab1 = CreateMetricRow("CG Offset", out cgValueLabel);
+            var stab2 = CreateMetricRow("Inertia Index", out inertiaValueLabel);
+            var stab3 = CreateMetricRow("Yaw Stability", out yawValueLabel);
 
-            rightLayout.Controls.Add(analysisCard, 0, 0);
-            rightLayout.Controls.Add(warningsCard, 0, 1);
-            rightLayout.Controls.Add(BuildFeatureSetCard(), 0, 2);
+            var alertHeader = CreateSectionHeader("Alerts");
+            var alert1 = CreateMetricRow("Missing Components", out missingValueLabel);
+            var alert2 = CreateMetricRow("Overcurrent Risk", out overcurrentValueLabel);
+            var alert3 = CreateMetricRow("Overheat Risk", out overheatValueLabel);
+            var alert4 = CreateMetricRow("Structural Risk", out structuralValueLabel);
+
+            buildHealthBody.Controls.Add(alert4);
+            buildHealthBody.Controls.Add(alert3);
+            buildHealthBody.Controls.Add(alert2);
+            buildHealthBody.Controls.Add(alert1);
+            buildHealthBody.Controls.Add(alertHeader);
+            buildHealthBody.Controls.Add(stab3);
+            buildHealthBody.Controls.Add(stab2);
+            buildHealthBody.Controls.Add(stab1);
+            buildHealthBody.Controls.Add(stabilityHeader);
+            buildHealthBody.Controls.Add(perf5);
+            buildHealthBody.Controls.Add(perf4);
+            buildHealthBody.Controls.Add(perf3);
+            buildHealthBody.Controls.Add(perf2);
+            buildHealthBody.Controls.Add(perf1);
+            buildHealthBody.Controls.Add(perfHeader);
+
+            buildHealthCard.Controls.Add(buildHealthBody);
+            buildHealthCard.Controls.Add(buildHealthHeader);
+            right.Controls.Add(buildHealthCard);
 
 
 
@@ -959,25 +909,7 @@ float lastError = 0;
                 BorderThickness = 1,
                 Padding = new Padding(12)
             };
-            var viewportHeader = new Label
-            {
-                Text = "VIEWPORT",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(10, 0, 0, 0),
-                Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point)
-            };
-
-            var viewportHeaderPanel = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 36
-            };
-
-            viewportHeaderPanel.Controls.Add(viewportHeader);
-
             viewportCard.Controls.Add(viewport);
-            viewportCard.Controls.Add(viewportHeaderPanel);
 
             var quickMetricsCard = new RoundedPanel
             {
@@ -989,13 +921,14 @@ float lastError = 0;
             var metricsTable = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                ColumnCount = 4,
+                ColumnCount = 5,
                 RowCount = 1
             };
-            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
-            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
-            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
-            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25f));
+            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
+            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
+            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
+            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
+            metricsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 20f));
 
             Label CreateMetricLabel(string text)
             {
@@ -1008,26 +941,29 @@ float lastError = 0;
                 };
             }
 
-            massMetricLabel = CreateMetricLabel("AUW: --");
-            powerMetricLabel = CreateMetricLabel("Power Draw: --");
-            enduranceMetricLabel = CreateMetricLabel("Est. Flight: --");
-            payloadMetricLabel = CreateMetricLabel("Stress/Stab: --");
+            allUpWeightLabel = CreateMetricLabel("All-Up Weight: --");
+            totalThrustLabel = CreateMetricLabel("Total Thrust: --");
+            hoverCurrentLabel = CreateMetricLabel("Hover Current: --");
+            efficiencyIndexLabel = CreateMetricLabel("Efficiency Index: --");
+            stabilityIndexLabel = CreateMetricLabel("Stability Index: --");
 
-            metricsTable.Controls.Add(massMetricLabel, 0, 0);
-            metricsTable.Controls.Add(powerMetricLabel, 1, 0);
-            metricsTable.Controls.Add(enduranceMetricLabel, 2, 0);
-            metricsTable.Controls.Add(payloadMetricLabel, 3, 0);
+            metricsTable.Controls.Add(allUpWeightLabel, 0, 0);
+            metricsTable.Controls.Add(totalThrustLabel, 1, 0);
+            metricsTable.Controls.Add(hoverCurrentLabel, 2, 0);
+            metricsTable.Controls.Add(efficiencyIndexLabel, 3, 0);
+            metricsTable.Controls.Add(stabilityIndexLabel, 4, 0);
             quickMetricsCard.Controls.Add(metricsTable);
 
-            var actionPanel = new FlowLayoutPanel
+            var actionPanel = new Panel { Dock = DockStyle.Fill };
+            var actionButtons = new FlowLayoutPanel
             {
-                Dock = DockStyle.Fill,
-                FlowDirection = FlowDirection.RightToLeft,
-                Padding = new Padding(0, 8, 0, 0),
-                WrapContents = false
+                AutoSize = true,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = false,
+                Padding = new Padding(0, 8, 0, 0)
             };
 
-            exportConfigButton = new Button { Name = "btnExportConfig", Text = "EXPORT CONFIG", Width = 170, Height = 40 };
+            exportConfigButton = new Button { Name = "btnExportConfig", Text = "Export Config", Width = 150, Height = 38 };
             exportConfigButton.Click += (_, __) =>
             {
                 if (project == null)
@@ -1058,19 +994,25 @@ float lastError = 0;
                 File.WriteAllText(sfd.FileName, JsonSerializer.Serialize(exportPayload, new JsonSerializerOptions { WriteIndented = true }));
             };
 
-            runSimButton = new Button { Name = "btnRunSimulation", Text = "RUN SIMULATION", Width = 170, Height = 40 };
+            runSimButton = new Button { Name = "btnRunSimulation", Text = "Run Simulation", Width = 200, Height = 44 };
             runSimButton.Click += (_, __) =>
             {
                 viewport.Focus();
                 viewport.Invalidate();
             };
 
-            saveBuildButton = new Button { Name = "btnSaveBuild", Text = "SAVE BUILD", Width = 170, Height = 40 };
+            saveBuildButton = new Button { Name = "btnSaveBuild", Text = "Save Build", Width = 150, Height = 38 };
             saveBuildButton.Click += (_, __) => SaveProject();
 
-            actionPanel.Controls.Add(exportConfigButton);
-            actionPanel.Controls.Add(runSimButton);
-            actionPanel.Controls.Add(saveBuildButton);
+            actionButtons.Controls.Add(runSimButton);
+            actionButtons.Controls.Add(saveBuildButton);
+            actionButtons.Controls.Add(exportConfigButton);
+            actionPanel.Controls.Add(actionButtons);
+            actionPanel.SizeChanged += (_, __) =>
+            {
+                actionButtons.Left = Math.Max(0, (actionPanel.Width - actionButtons.Width) / 2);
+                actionButtons.Top = Math.Max(0, (actionPanel.Height - actionButtons.Height) / 2);
+            };
 
             centerLayout.Controls.Add(viewportCard, 0, 0);
             centerLayout.Controls.Add(quickMetricsCard, 0, 1);
@@ -1146,8 +1088,7 @@ float lastError = 0;
 
             ApplyTheme();
             NewProject();
-            SetWorkspace(WorkspaceArea.Assemble);
-
+            
             ResumeLayout(true);
         }
 
@@ -1164,24 +1105,28 @@ float lastError = 0;
             titleBarPanel = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 36,
-                Padding = new Padding(6, 4, 6, 4)
+                Height = 32,
+                Padding = new Padding(6, 2, 6, 2)
             };
 
             titleLogo = new PictureBox
             {
                 Dock = DockStyle.Left,
-                Width = 74,
+                Width = 88,
                 SizeMode = PictureBoxSizeMode.Zoom,
                 Margin = new Padding(0)
             };
             if (logoImage != null)
                 titleLogo.Image = logoImage;
 
-            titleButtonPanel = new Panel
+            titleButtonPanel = new FlowLayoutPanel
             {
                 Dock = DockStyle.Right,
-                Width = 114
+                Width = 138,
+                FlowDirection = FlowDirection.RightToLeft,
+                WrapContents = false,
+                Margin = new Padding(0),
+                Padding = new Padding(0)
             };
 
             titleCloseButton = CreateTitleButton("btnWindowClose", "X");
@@ -1191,9 +1136,9 @@ float lastError = 0;
             titleMinButton = CreateTitleButton("btnWindowMin", "—");
             titleMinButton.Click += (_, __) => WindowState = FormWindowState.Minimized;
 
-            titleCloseButton.Dock = DockStyle.Right;
-            titleMaxButton.Dock = DockStyle.Right;
-            titleMinButton.Dock = DockStyle.Right;
+            titleCloseButton.Margin = new Padding(0);
+            titleMaxButton.Margin = new Padding(0);
+            titleMinButton.Margin = new Padding(0);
             titleButtonPanel.Controls.Add(titleCloseButton);
             titleButtonPanel.Controls.Add(titleMaxButton);
             titleButtonPanel.Controls.Add(titleMinButton);
@@ -1204,13 +1149,7 @@ float lastError = 0;
                 Padding = new Padding(10, 0, 8, 0)
             };
             titleMenuHost.Controls.Add(menu);
-            titleMenuHost.Paint += (_, e) =>
-            {
-                using var pen = new Pen(Color.FromArgb(66, 131, 239), 1f);
-                var rect = new Rectangle(0, 0, Math.Max(0, titleMenuHost.Width - 1), Math.Max(0, titleMenuHost.Height - 1));
-                e.Graphics.DrawRectangle(pen, rect);
-            };
-
+            
             titleBarPanel.Controls.Add(titleMenuHost);
             titleBarPanel.Controls.Add(titleButtonPanel);
             titleBarPanel.Controls.Add(titleLogo);
@@ -1219,7 +1158,20 @@ float lastError = 0;
             WireTitleDrag(titleBarPanel);
             WireTitleDrag(titleLogo);
             WireTitleDrag(titleMenuHost);
+            WireMenuDrag(menu);
             UpdateTitleMaximizeButton();
+        }
+
+        void WireMenuDrag(ToolStrip strip)
+        {
+            if (strip == null) return;
+            strip.MouseDown += (_, e) =>
+            {
+                if (e.Button != MouseButtons.Left) return;
+                if (strip.GetItemAt(e.Location) != null) return; // allow normal menu clicks
+                ReleaseCapture();
+                SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+            };
         }
 
         Button CreateTitleButton(string name, string text)
@@ -1228,10 +1180,15 @@ float lastError = 0;
             {
                 Name = name,
                 Text = text,
-                Width = 38,
+                Width = 46,
+                Height = 28,
                 FlatStyle = FlatStyle.Flat,
                 FlatAppearance = { BorderSize = 0 },
-                TabStop = false
+                TabStop = false,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Font = new Font("Segoe UI", 9f, FontStyle.Regular, GraphicsUnit.Point),
+                BackColor = SystemColors.Control,
+                ForeColor = SystemColors.ControlText
             };
         }
 
@@ -1354,7 +1311,6 @@ float lastError = 0;
         void SetSimulationMode(SimulationMode mode)
         {
             simulationMode = mode;
-            statusLabel.Text = $"Mode: {mode}";
             UpdateStatusBar();
             viewport.Invalidate();
         }
@@ -1414,21 +1370,18 @@ float lastError = 0;
             pidP = p;
             pidI = i;
             pidD = d;
-            statusLabel.Text = $"PID preset: {presetName}";
             UpdateStatusBar();
         }
 
         void SetFirmwareProfile(FirmwareProfile profile)
         {
             firmwareProfile = profile;
-            statusLabel.Text = $"Firmware profile: {profile}";
             UpdateStatusBar();
         }
 
         void SetSensorProfile(SensorProfile profile)
         {
             sensorProfile = profile;
-            statusLabel.Text = $"Sensor profile: {profile}";
             UpdateStatusBar();
         }
 
@@ -1702,17 +1655,18 @@ float lastError = 0;
         public void ReportPluginMessage(string message)
         {
             Logger.Log(message);
-            if (statusLabel != null && !IsDisposed)
-                statusLabel.Text = message;
         }
 
         void LayoutRootPanels()
         {
             if (contentHost == null || contentHost.IsDisposed) return;
             if (titleBarPanel == null || titleBarPanel.IsDisposed) return;
+            if (topToolbarHost == null || topToolbarHost.IsDisposed) return;
             if (statusStrip == null || statusStrip.IsDisposed) return;
+            
+            topToolbarHost.Top = titleBarPanel.Bottom;
 
-            int top = titleBarPanel.Bottom + 2;
+            int top = topToolbarHost.Bottom + 2;
             int bottom = statusStrip.Height;
             int width = Math.Max(0, ClientSize.Width);
             int height = Math.Max(0, ClientSize.Height - top - bottom);
@@ -1749,16 +1703,17 @@ float lastError = 0;
             var baseDir = AppContext.BaseDirectory;
             var candidates = new[]
             {
-                Path.Combine(baseDir, "assets", "silvu-logo.png"),
-                Path.Combine(baseDir, "silvu-logo.png"),
-                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "assets", "silvu-logo.png"))
+                Path.Combine(baseDir, "design", "mockups", "logo.png"),
+                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "design", "mockups", "logo.png")),
+                Path.Combine(baseDir, "logo.png"),
+                Path.GetFullPath(Path.Combine(baseDir, "..", "..", "..", "..", "logo.png"))
             };
 
             foreach (var candidate in candidates)
             {
                 try
                 {
-                    if (File.Exists(candidate))
+                    if (File.Exists(candidate)) // Original line for silvu-logo.png is removed, now it checks for logo.png
                         return Image.FromFile(candidate);
                 }
                 catch
@@ -1779,25 +1734,27 @@ float lastError = 0;
 
             if (menu != null)
             {
-                menu.BackColor = Color.FromArgb(204, 204, 204);
-                menu.ForeColor = Color.FromArgb(18, 18, 18);
+                menu.BackColor = palette.WindowBackground; // Match title bar background
+                menu.ForeColor = palette.TextPrimary;
                 menu.Renderer = toolStripRenderer;
                 ApplyToolStripTheme(menu.Items, palette);
             }
 
             if (titleBarPanel != null)
             {
-                titleBarPanel.BackColor = darkMode
-                    ? Color.FromArgb(24, 24, 24)
-                    : Color.FromArgb(40, 40, 40);
+                titleBarPanel.BackColor = palette.WindowBackground;
             }
             if (titleMenuHost != null)
             {
-                titleMenuHost.BackColor = Color.FromArgb(206, 210, 216);
+                titleMenuHost.BackColor = palette.WindowBackground;
             }
             if (titleButtonPanel != null)
             {
-                titleButtonPanel.BackColor = Color.FromArgb(228, 228, 228);
+                titleButtonPanel.BackColor = palette.WindowBackground;
+            }
+            if (titleLogo != null)
+            {
+                titleLogo.BackColor = palette.WindowBackground;
             }
 
             if (statusStrip != null)
@@ -1827,30 +1784,30 @@ float lastError = 0;
 
             ApplyWorkspaceStripTheme();
 
-            if (titleMinButton != null)
-            {
-                titleMinButton.ForeColor = Color.FromArgb(26, 26, 26);
-                titleMinButton.BackColor = Color.FromArgb(238, 238, 238);
-                titleMinButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(223, 223, 223);
-                titleMinButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(210, 210, 210);
-            }
-            if (titleMaxButton != null)
-            {
-                titleMaxButton.ForeColor = Color.FromArgb(26, 26, 26);
-                titleMaxButton.BackColor = Color.FromArgb(238, 238, 238);
-                titleMaxButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(223, 223, 223);
-                titleMaxButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(210, 210, 210);
-            }
+            // Apply themed colors to title bar buttons
+            if (titleMinButton != null) UpdateTitleButtonColors(titleMinButton, palette);
+            if (titleMaxButton != null) UpdateTitleButtonColors(titleMaxButton, palette);
             if (titleCloseButton != null)
             {
-                titleCloseButton.ForeColor = Color.FromArgb(26, 26, 26);
-                titleCloseButton.BackColor = Color.FromArgb(238, 238, 238);
+                titleCloseButton.ForeColor = palette.TextPrimary;
+                titleCloseButton.BackColor = palette.WindowBackground;
                 titleCloseButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(232, 76, 61);
                 titleCloseButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(210, 56, 43);
             }
 
             viewport?.Invalidate();
             Invalidate(true);
+        }
+
+        // Helper method to update common title button colors
+        void UpdateTitleButtonColors(Button button, UiPalette palette)
+        {
+            button.ForeColor = palette.TextPrimary;
+            button.BackColor = palette.WindowBackground;
+            button.FlatAppearance.MouseOverBackColor = palette.Surface;
+            button.FlatAppearance.MouseDownBackColor = palette.SurfaceAlt;
+            button.FlatAppearance.BorderSize = 0; // Ensure no border
+            button.Font = new Font("Segoe UI", 9f, FontStyle.Regular, GraphicsUnit.Point); // Ensure consistent font
         }
 
         void ApplyThemeToControlTree(Control root, UiPalette palette)
@@ -1882,13 +1839,13 @@ float lastError = 0;
                 else if (child is ToolStrip strip)
                 {
                     bool isTitleMenu = strip == menu;
-                    strip.BackColor = isTitleMenu ? Color.FromArgb(204, 204, 204) : palette.Surface;
-                    strip.ForeColor = isTitleMenu ? Color.FromArgb(18, 18, 18) : palette.TextPrimary;
+                    strip.BackColor = isTitleMenu ? palette.WindowBackground : palette.Surface;
+                    strip.ForeColor = palette.TextPrimary; // Always use palette.TextPrimary for toolstrips
                     strip.Renderer = toolStripRenderer;
                     ApplyToolStripTheme(strip.Items, palette);
                 }
                 else if (child is TabControl tabs)
-                {
+                { // Existing logic is fine
                     tabs.BackColor = palette.Surface;
                     tabs.ForeColor = palette.TextPrimary;
                 }
@@ -1920,7 +1877,7 @@ float lastError = 0;
                     check.BackColor = Color.Transparent;
                     check.ForeColor = palette.TextPrimary;
                 }
-                else if (child is Button button)
+                else if (child is Button button && !button.Name.StartsWith("btnWindow", StringComparison.Ordinal)) // Exclude title bar buttons here
                 {
                     button.FlatStyle = FlatStyle.Flat;
                     button.Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point);
@@ -1930,23 +1887,24 @@ float lastError = 0;
                         button.FlatAppearance.BorderSize = 0;
                         button.Font = new Font("Segoe UI", 9f, FontStyle.Regular, GraphicsUnit.Point);
                     }
-                    else if (button.Name == "btnExportConfig")
-                    {
-                        button.FlatAppearance.BorderSize = 1;
-                        button.FlatAppearance.BorderColor = palette.Border;
-                        button.BackColor = Color.FromArgb(236, 144, 48);
-                        button.ForeColor = Color.White;
-                        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(222, 132, 39);
-                        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(209, 119, 30);
-                    }
                     else if (button.Name == "btnRunSimulation")
                     {
                         button.FlatAppearance.BorderSize = 1;
                         button.FlatAppearance.BorderColor = palette.Border;
-                        button.BackColor = Color.FromArgb(225, 234, 249);
+                        button.BackColor = palette.Accent;
+                        button.ForeColor = Color.White;
+                        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(42, 126, 231);
+                        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(27, 104, 208);
+                        button.Font = new Font(Font.FontFamily, 10f, FontStyle.Bold, GraphicsUnit.Point);
+                    }
+                    else if (button.Name == "btnSaveBuild" || button.Name == "btnExportConfig")
+                    {
+                        button.FlatAppearance.BorderSize = 1;
+                        button.FlatAppearance.BorderColor = palette.Border;
+                        button.BackColor = palette.SurfaceAlt;
                         button.ForeColor = palette.TextPrimary;
-                        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(214, 226, 245);
-                        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(202, 218, 240);
+                        button.FlatAppearance.MouseOverBackColor = Color.FromArgb(224, 232, 245);
+                        button.FlatAppearance.MouseDownBackColor = Color.FromArgb(210, 221, 238);
                     }
                     else
                     {
@@ -1966,24 +1924,10 @@ float lastError = 0;
                 }
                 else if (child is Panel panel)
                 {
-                    if (panel == titleBarPanel)
-                    {
-                        panel.BackColor = darkMode
-                            ? Color.FromArgb(24, 24, 24)
-                            : Color.FromArgb(40, 40, 40);
-                    }
-                    else if (panel == titleMenuHost)
-                    {
-                        panel.BackColor = Color.FromArgb(206, 210, 216);
-                    }
-                    else if (panel == titleButtonPanel)
-                    {
-                        panel.BackColor = Color.FromArgb(228, 228, 228);
-                    }
-                    else
-                    {
-                        panel.BackColor = palette.WindowBackground;
-                    }
+                    if (panel == titleBarPanel) panel.BackColor = palette.WindowBackground;
+                    else if (panel == titleMenuHost) panel.BackColor = palette.WindowBackground;
+                    else if (panel == titleButtonPanel) panel.BackColor = palette.WindowBackground;
+                    else panel.BackColor = palette.WindowBackground;
                 }
             }
 
@@ -2000,11 +1944,9 @@ float lastError = 0;
             {
                 if (item is ToolStripSeparator) continue;
 
-                bool isTitleMenuItem = menu != null && item.Owner == menu;
-                item.BackColor = isTitleMenuItem ? Color.FromArgb(204, 204, 204) : palette.Surface;
-                item.ForeColor = isTitleMenuItem
-                    ? Color.FromArgb(18, 18, 18)
-                    : (item is ToolStripLabel lbl && (lbl.Text?.Contains("Component-Level") ?? false)
+                bool isTitleMenuItem = item.Owner == menu;
+                item.BackColor = isTitleMenuItem ? palette.WindowBackground : palette.Surface;
+                item.ForeColor = (item is ToolStripLabel lbl && (lbl.Text?.Contains("Component-Level") ?? false)
                         ? palette.TextMuted
                         : palette.TextPrimary);
 
@@ -2024,6 +1966,24 @@ float lastError = 0;
             contextMenu.ForeColor = palette.TextPrimary;
             contextMenu.Renderer = toolStripRenderer;
             ApplyToolStripTheme(contextMenu.Items, palette);
+        }
+
+        void ApplyWorkspaceStripTheme()
+        {
+            if (statusStrip == null) return;
+            var palette = CurrentPalette;
+            statusStrip.BackColor = palette.Surface;
+            statusStrip.ForeColor = palette.TextPrimary;
+        }
+
+        // New event handler for titleMenuHost Paint to ensure themed border
+        void TitleMenuHost_Paint(object? sender, PaintEventArgs e)
+        {
+            if (sender is not Control control) return;
+            var palette = CurrentPalette;
+            using var pen = new Pen(palette.Border, 1f);
+            var rect = new Rectangle(0, 0, Math.Max(0, control.Width - 1), Math.Max(0, control.Height - 1));
+            e.Graphics.DrawRectangle(pen, rect);
         }
 
         void UpdatePhysics(float dt)
@@ -2386,35 +2346,109 @@ float lastError = 0;
 
         void RefreshTree()
         {
+            projectTree.BeginUpdate();
             projectTree.Nodes.Clear();
-            if (project == null) return;
-
-            var root = new TreeNode(project.Name);
-            var map = new Dictionary<string, TreeNode>();
-
-            foreach (var p in project.Instances)
+            if (project == null)
             {
-                string group = p.Type.ToString();
+                projectTree.EndUpdate();
+                return;
+            }
 
-                if (!map.ContainsKey(group))
+            TreeNode CreateGroupNode(string title)
+            {
+                return new TreeNode(title)
                 {
-                    map[group] = new TreeNode(group);
-                    root.Nodes.Add(map[group]);
-                }
-
-                var asset = AssetLibrary.Get(p.AssetId);
-                var display = asset?.Name ?? p.AssetId;
-                map[group].Nodes.Add(new TreeNode(display) { Tag = p });
+                    NodeFont = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point)
+                };
             }
 
-            // append counts to group headers for clarity
-            foreach (var kv in map)
+            void AddComponentNode(TreeNode group, string name, PlacedInstance? instance, string specs, string weight, string warnings)
             {
-                kv.Value.Text = $"{kv.Key} ({kv.Value.Nodes.Count})";
+                var node = new TreeNode(name);
+                if (instance != null) node.Tag = instance;
+                node.Nodes.Add(new TreeNode($"Specs: {specs}"));
+                node.Nodes.Add(new TreeNode($"Weight: {weight}"));
+                node.Nodes.Add(new TreeNode($"Warnings: {warnings}"));
+                group.Nodes.Add(node);
             }
 
-            root.ExpandAll();
-            projectTree.Nodes.Add(root);
+            string WeightText(float kg)
+            {
+                return kg > 0f ? $"{kg * 1000f:0} g" : "--";
+            }
+
+            var frame = project.Instances.FirstOrDefault(p => p.Type == PartType.Frame);
+            var frameAsset = frame != null ? AssetLibrary.Get(frame.AssetId) as FrameAsset : null;
+            int expectedMotors = frameAsset?.ArmCount > 0 ? frameAsset.ArmCount : 4;
+
+            var frameGroup = CreateGroupNode("Frame");
+            if (frame != null)
+            {
+                string specs = frameAsset != null ? $"{frameAsset.WheelbaseMm:0}mm WB" : "--";
+                AddComponentNode(frameGroup, frameAsset?.Name ?? "Frame", frame, specs, WeightText(PhysicsDatabase.FrameMass()), "--");
+            }
+            else
+            {
+                AddComponentNode(frameGroup, "Not Set", null, "--", "--", "Missing");
+            }
+            projectTree.Nodes.Add(frameGroup);
+
+            var motorGroup = CreateGroupNode($"Motors (x{expectedMotors})");
+            var motors = project.Instances.Where(p => p.Type == PartType.Motor).ToList();
+            foreach (var motor in motors)
+            {
+                var motorAsset = AssetLibrary.Get(motor.AssetId) as MotorAsset;
+                var motorName = motorAsset?.Name ?? motor.AssetId;
+                string specs = motorAsset != null ? $"{motorAsset.KV:0}KV" : "--";
+                float weight = motorAsset?.MassKg > 0 ? motorAsset.MassKg : PhysicsDatabase.MotorMass(motorName);
+                AddComponentNode(motorGroup, motorName, motor, specs, WeightText(weight), "--");
+            }
+            if (motors.Count < expectedMotors)
+            {
+                AddComponentNode(motorGroup, "Missing", null, "--", "--", $"{expectedMotors - motors.Count} missing");
+            }
+            projectTree.Nodes.Add(motorGroup);
+
+            var escGroup = CreateGroupNode("ESC");
+            AddComponentNode(escGroup, "Not Set", null, "--", "--", "Missing");
+            projectTree.Nodes.Add(escGroup);
+
+            var batteryGroup = CreateGroupNode("Battery");
+            var batteryInst = project.Instances.FirstOrDefault(p => p.Type == PartType.Battery);
+            if (batteryInst != null)
+            {
+                var batteryAsset = AssetLibrary.Get(batteryInst.AssetId) as BatteryAsset;
+                string specs = "--";
+                if (batteryAsset != null)
+                {
+                    int cells = batteryAsset.Cells > 0 ? batteryAsset.Cells : (int)Math.Round(batteryAsset.VoltageNominal / 3.7f);
+                    specs = $"{batteryAsset.VoltageNominal:0.0}V {cells}S";
+                }
+                float weight = batteryAsset?.MassKg > 0 ? batteryAsset.MassKg : PhysicsDatabase.BatteryMass();
+                AddComponentNode(batteryGroup, batteryAsset?.Name ?? "Battery", batteryInst, specs, WeightText(weight), "--");
+            }
+            else
+            {
+                AddComponentNode(batteryGroup, "Not Set", null, "--", "--", "Missing");
+            }
+            projectTree.Nodes.Add(batteryGroup);
+
+            var fcGroup = CreateGroupNode("Flight Controller");
+            AddComponentNode(fcGroup, "Not Set", null, "--", "--", "Missing");
+            projectTree.Nodes.Add(fcGroup);
+
+            var payloadGroup = CreateGroupNode("Payload");
+            if (payloadType != PayloadType.None && payloadMassKg > 0f)
+            {
+                AddComponentNode(payloadGroup, PayloadDisplay(payloadType), null, "--", WeightText(payloadMassKg), "--");
+            }
+            else
+            {
+                AddComponentNode(payloadGroup, "None", null, "--", "--", "--");
+            }
+            projectTree.Nodes.Add(payloadGroup);
+
+            projectTree.EndUpdate();
             UpdateTitle();
         }
 
@@ -2433,16 +2467,7 @@ float lastError = 0;
 
     if (project == null)
     {
-        var title = "Start a project to begin building";
-        var subtitle = "Add a frame, then place motors and a battery.";
-        var titleSize = g.MeasureString(title, Font);
-        var subtitleSize = g.MeasureString(subtitle, Font);
-        var x = (viewport.Width - Math.Max(titleSize.Width, subtitleSize.Width)) / 2f;
-        var y = (viewport.Height - (titleSize.Height + subtitleSize.Height + 8f)) / 2f;
-        using var titleBrush = new SolidBrush(palette.TextPrimary);
-        using var subtitleBrush = new SolidBrush(palette.TextMuted);
-        g.DrawString(title, Font, titleBrush, x, y);
-        g.DrawString(subtitle, Font, subtitleBrush, x, y + titleSize.Height + 8f);
+        DrawViewportOverlays(g);
         return;
     }
 
@@ -2484,8 +2509,7 @@ float lastError = 0;
         g.DrawString(txt, Font, t, pos);
     }
 
-    DrawPhysicsHUD(g);
-    DrawTelemetryMiniCharts(g);
+    DrawViewportOverlays(g);
 }
 
 void DrawFrame(Graphics g, PlacedInstance frame)
@@ -2737,56 +2761,91 @@ void DrawSparkline(Graphics g, RectangleF rect, List<float> values, Color lineCo
         g.DrawLines(linePen, points);
 }
 
-void DrawPhysicsHUD(Graphics g)
+void DrawViewportOverlays(Graphics g)
 {
     var palette = CurrentPalette;
-    float batteryPercent = batteryCapacityAh > 0 ? (batteryRemainingAh / batteryCapacityAh) * 100f : 0f;
-    var lines = new[]
-    {
-        $"Mode: {simulationMode} / {firmwareProfile}",
-        $"Sensors: {sensorProfile}",
-        $"Altitude: {altitude:F2} m",
-        $"Mass: {totalMassKg:F2} kg",
-        $"Thrust: {totalThrustN:F1} N",
-        $"Current: {totalCurrentA:F1} A",
-        $"Voltage: {batteryVoltage:F1} V",
-        $"Battery: {batteryPercent:0}%",
-        $"Temps M/ESC: {motorTempC:0}/{escTempC:0} C",
-        $"Stress/Stability: {frameStressPct:0}%/{stabilityMarginPct:0}%",
-        $"Waypoints: {waypoints.Count} | Payload: {payloadType}",
-        $"ESC Risk: {escFailureRiskPct:0}% | IMU Vib: {imuVibrationPct:0}%"
-    };
-
-    float lineHeight = Font.Height + 2;
-    float panelWidth = 300;
-    float panelHeight = 16 + (lineHeight * (lines.Length + 1)) + 8;
-    var panelRect = new RectangleF(12, 12, panelWidth, panelHeight);
-
-    using var panelPath = BuildRoundedPath(panelRect, 12f);
-    using var panelBrush = new SolidBrush(Color.FromArgb(220, palette.HudBackground));
-    using var panelPen = new Pen(palette.Border, 1f);
+    using var hudFont = new Font(Font.FontFamily, 8.5f, FontStyle.Regular, GraphicsUnit.Point);
     using var textBrush = new SolidBrush(palette.HudText);
-    g.FillPath(panelBrush, panelPath);
-    g.DrawPath(panelPen, panelPath);
+    using var borderPen = new Pen(palette.Border, 1f);
+    using var panelBrush = new SolidBrush(Color.FromArgb(210, palette.HudBackground));
 
-    float y = panelRect.Y + 10;
-    float x = panelRect.X + 12;
-    foreach (var line in lines)
+    string buildName = project?.Name ?? "--";
+    string massText = totalMassKg > 0.01f ? $"{totalMassKg:0.00} kg" : "--";
+    string statusText = "No Build";
+
+    if (project != null)
     {
-        g.DrawString(line, Font, textBrush, x, y);
-        y += lineHeight;
+        int frames = project.Instances.Count(i => i.Type == PartType.Frame);
+        int motors = project.Instances.Count(i => i.Type == PartType.Motor);
+        bool hasBattery = project.Instances.Any(i => i.Type == PartType.Battery);
+        var frameAsset = GetFrameAsset();
+        int expectedMotors = frameAsset?.ArmCount > 0 ? frameAsset.ArmCount : 4;
+        statusText = (frames > 0 && motors >= expectedMotors && hasBattery) ? "Ready" : "Incomplete";
     }
 
-    bool hoverOk = totalThrustN >= totalMassKg * GRAVITY;
-    string hover = hoverOk ? "HOVER OK" : "NO HOVER";
-    using var hoverBrush = new SolidBrush(hoverOk ? palette.Success : palette.Warning);
-    g.DrawString(hover, Font, hoverBrush, x, y);
-
-    if (educationMode)
+    var leftLines = new[]
     {
-        y += lineHeight;
-        using var eduBrush = new SolidBrush(Color.FromArgb(180, palette.HudText));
-        g.DrawString("Tip: Raise stability by reducing payload offset and turbulence.", Font, eduBrush, x, y);
+        $"Build Name: {buildName}",
+        $"Mass: {massText}",
+        $"Status: {statusText}"
+    };
+
+    float lineHeight = hudFont.Height + 2f;
+    float leftWidth = leftLines.Max(l => g.MeasureString(l, hudFont).Width);
+    var leftRect = new RectangleF(12f, 12f, leftWidth + 16f, leftLines.Length * lineHeight + 10f);
+
+    using (var leftPath = BuildRoundedPath(leftRect, 10f))
+    {
+        g.FillPath(panelBrush, leftPath);
+        g.DrawPath(borderPen, leftPath);
+    }
+
+    float lx = leftRect.X + 8f;
+    float ly = leftRect.Y + 6f;
+    foreach (var line in leftLines)
+    {
+        g.DrawString(line, hudFont, textBrush, lx, ly);
+        ly += lineHeight;
+    }
+
+    var toggles = new[]
+    {
+        "Solid View",
+        "Wireframe",
+        "Aero Overlay",
+        "Mass Distribution",
+        "Stress Map"
+    };
+    int activeToggle = 0;
+
+    float toggleWidth = toggles.Max(t => g.MeasureString(t, hudFont).Width) + 28f;
+    float toggleHeight = hudFont.Height + 6f;
+    float panelWidth = toggleWidth + 12f;
+    float panelHeight = toggles.Length * toggleHeight + 8f;
+    float rightX = Math.Max(12f, viewport.Width - panelWidth - 12f);
+    float rightY = 12f;
+    var rightRect = new RectangleF(rightX, rightY, panelWidth, panelHeight);
+
+    using (var rightPath = BuildRoundedPath(rightRect, 10f))
+    {
+        g.FillPath(panelBrush, rightPath);
+        g.DrawPath(borderPen, rightPath);
+    }
+
+    for (int i = 0; i < toggles.Length; i++)
+    {
+        float rowY = rightRect.Y + 4f + i * toggleHeight;
+        var box = new RectangleF(rightRect.X + 8f, rowY + 4f, 10f, 10f);
+        using var boxPen = new Pen(palette.Border, 1f);
+        g.DrawRectangle(boxPen, box.X, box.Y, box.Width, box.Height);
+
+        if (i == activeToggle)
+        {
+            using var fill = new SolidBrush(palette.Accent);
+            g.FillRectangle(fill, box.X + 2f, box.Y + 2f, box.Width - 4f, box.Height - 4f);
+        }
+
+        g.DrawString(toggles[i], hudFont, textBrush, box.Right + 6f, rowY + 2f);
     }
 }
 
@@ -2812,7 +2871,9 @@ void DrawPhysicsHUD(Graphics g)
 
 
 
-        void BuildLibrary()
+        void BuildLibrary() => BuildLibrary(string.Empty);
+
+        void BuildLibrary(string filter)
         {
             libraryTree.Nodes.Clear();
 
@@ -2821,16 +2882,29 @@ void DrawPhysicsHUD(Graphics g)
             // user assets on disk
             AssetLibrary.LoadAll(AssetLibrary.UserAssetRoot);
 
-            var categories = AssetLibrary.Assets.Values.Select(a => a.Category).Distinct().OrderBy(c => c);
-            foreach (var cat in categories)
+            var orderedCategories = new (string Key, string Display)[]
             {
-                var parent = new TreeNode(cat);
-                foreach (var a in AssetLibrary.GetByCategory(cat))
+                ("Frames", "Frames"),
+                ("Motors", "Motors"),
+                ("ESC", "ESCs"),
+                ("Batteries", "Batteries"),
+                ("FC", "Controllers"),
+                ("Payload", "Payload")
+            };
+
+            bool hasFilter = !string.IsNullOrWhiteSpace(filter);
+            foreach (var (key, display) in orderedCategories)
+            {
+                var parent = new TreeNode(display) { Tag = key };
+                foreach (var a in AssetLibrary.GetByCategory(key))
                 {
+                    if (hasFilter && !a.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                        continue;
                     var node = new TreeNode(a.Name) { Tag = a };
                     parent.Nodes.Add(node);
                 }
-                libraryTree.Nodes.Add(parent);
+                if (!hasFilter || parent.Nodes.Count > 0)
+                    libraryTree.Nodes.Add(parent);
             }
 
             libraryTree.ExpandAll();
@@ -2962,17 +3036,35 @@ void DrawPhysicsHUD(Graphics g)
             Text = $"SILVU VIEWFINDER — {project?.Name}{(dirty ? " *" : "")}";
         }
 
+        static string SimulationModeDisplayName(SimulationMode mode) => mode switch
+        {
+            SimulationMode.ManualFpv => "Manual",
+            SimulationMode.AutonomousMission => "Autonomous",
+            SimulationMode.EmergencyFailure => "Emergency",
+            SimulationMode.Swarm => "Swarm",
+            SimulationMode.VtolHybrid => "VTOL",
+            SimulationMode.HeavyLift => "Heavy Lift",
+            _ => mode.ToString()
+        };
+
+        static string WorkspaceDisplayName(Workspace workspace) => workspace switch
+        {
+            Workspace.Assemble => "Assemble",
+            _ => workspace.ToString()
+        };
+
         void UpdateStatusBar()
         {
-            if (statusLabel == null) return;
+            if (workspaceStatus == null) return;
 
             if (project == null)
             {
-                statusLabel.Text = $"Workspace: {WorkspaceDisplayName(currentWorkspace)} | Ready";
-                frameStatus.Text = " | Frame: 0";
-                motorsStatus.Text = " | Motors: 0";
-                batteryStatus.Text = " | Battery: None";
-                errorsStatus.Text = " | Errors: 0";
+                workspaceStatus.Text = $"Workspace: {WorkspaceDisplayName(currentWorkspace)}";
+                modeStatus.Text = " | Mode: Manual";
+                firmwareStatus.Text = " | Firmware: Betaflight";
+                sensorsStatus.Text = " | Sensors: Nominal";
+                errorsStatus.Text = "Errors: 0";
+                simReadyStatus.Text = " | Simulation Ready: No";
                 errorsStatus.ForeColor = CurrentPalette.Success;
 
                 if (twrValueLabel != null) twrValueLabel.Text = "--";
@@ -2980,15 +3072,18 @@ void DrawPhysicsHUD(Graphics g)
                 if (flightValueLabel != null) flightValueLabel.Text = "--";
                 if (sagValueLabel != null) sagValueLabel.Text = "--";
                 if (tempValueLabel != null) tempValueLabel.Text = "--";
-                if (massMetricLabel != null) massMetricLabel.Text = "AUW: --";
-                if (powerMetricLabel != null) powerMetricLabel.Text = "Power Draw: --";
-                if (enduranceMetricLabel != null) enduranceMetricLabel.Text = "Est. Flight: --";
-                if (payloadMetricLabel != null) payloadMetricLabel.Text = "Stress/Stab: --";
-                if (warningsList != null)
-                {
-                    warningsList.Items.Clear();
-                    warningsList.Items.Add("Start by placing a frame.");
-                }
+                if (cgValueLabel != null) cgValueLabel.Text = "--";
+                if (inertiaValueLabel != null) inertiaValueLabel.Text = "--";
+                if (yawValueLabel != null) yawValueLabel.Text = "--";
+                if (missingValueLabel != null) missingValueLabel.Text = "--";
+                if (overcurrentValueLabel != null) overcurrentValueLabel.Text = "--";
+                if (overheatValueLabel != null) overheatValueLabel.Text = "--";
+                if (structuralValueLabel != null) structuralValueLabel.Text = "--";
+                if (allUpWeightLabel != null) allUpWeightLabel.Text = "All-Up Weight: --";
+                if (totalThrustLabel != null) totalThrustLabel.Text = "Total Thrust: --";
+                if (hoverCurrentLabel != null) hoverCurrentLabel.Text = "Hover Current: --";
+                if (efficiencyIndexLabel != null) efficiencyIndexLabel.Text = "Efficiency Index: --";
+                if (stabilityIndexLabel != null) stabilityIndexLabel.Text = "Stability Index: --";
                 UpdateFeatureSetPanel();
                 return;
             }
@@ -2997,30 +3092,14 @@ void DrawPhysicsHUD(Graphics g)
             int motors = project.Instances.Count(i => i.Type == PartType.Motor);
             var batteryInst = project.Instances.FirstOrDefault(i => i.Type == PartType.Battery);
             float payloadMass = payloadMassKg;
-
-            string batteryText = "None";
-            if (batteryInst != null)
-            {
-                var batAsset = AssetLibrary.Get(batteryInst.AssetId) as BatteryAsset;
-                if (batAsset != null && batAsset.VoltageNominal > 0)
-                {
-                    int s = batAsset.Cells > 0 ? batAsset.Cells : (int)Math.Round(batAsset.VoltageNominal / 3.7f);
-                    batteryText = $"{s}S {batAsset.CapacityAh:0.0}Ah {batAsset.Chemistry}";
-                }
-                else
-                {
-                    batteryText = "Unknown";
-                }
-            }
+            var frameAsset = GetFrameAsset();
+            int expectedMotors = frameAsset?.ArmCount > 0 ? frameAsset.ArmCount : 4;
 
             int errors = 0;
-
-            // quick checks
             if (frames == 0) errors++;
-            if (motors == 0) errors++;
+            if (motors < expectedMotors) errors++;
             if (batteryInst == null) errors++;
 
-            // estimate thrust vs weight
             float estMass = 0f;
             float estThrust = 0f;
             float estCurrentAtHover = 0f;
@@ -3057,70 +3136,82 @@ void DrawPhysicsHUD(Graphics g)
             float currentForEstimate = totalCurrentA > 0.1f ? totalCurrentA : estCurrentAtHover;
             float flightMins = currentForEstimate > 0.1f ? (batteryRemainingAh / currentForEstimate) * 60f : 0f;
             float sagVolts = Math.Max(0f, batteryVoltageNominal - batteryVoltage);
-            int criticalAlerts = 0;
 
-            statusLabel.Text = pendingAddMode == null
-                ? $"Workspace: {WorkspaceDisplayName(currentWorkspace)} | Mode: {simulationMode} | FW: {firmwareProfile} | Sensors: {sensorProfile}"
-                : $"Placing {pendingAddName ?? pendingAddMode.ToString()}";
-            frameStatus.Text = $" | Frame: {frames}";
-            motorsStatus.Text = $" | Motors: {motors}";
-            batteryStatus.Text = $" | Battery: {batteryText}";
-            errorsStatus.Text = $" | Errors: {errors}";
+            workspaceStatus.Text = $"Workspace: {WorkspaceDisplayName(currentWorkspace)}";
+            modeStatus.Text = $" | Mode: {SimulationModeDisplayName(simulationMode)}";
+            firmwareStatus.Text = $" | Firmware: {firmwareProfile}";
+            sensorsStatus.Text = $" | Sensors: {sensorProfile}";
+            errorsStatus.Text = $"Errors: {errors}";
+            simReadyStatus.Text = $" | Simulation Ready: {(errors == 0 ? "Yes" : "No")}";
             errorsStatus.ForeColor = errors == 0 ? CurrentPalette.Success : CurrentPalette.Warning;
 
-            if (twrValueLabel != null) twrValueLabel.Text = $"{twr:0.0}:1";
-            if (hoverValueLabel != null) hoverValueLabel.Text = $"{hoverPct:0}%";
+            if (twrValueLabel != null) twrValueLabel.Text = twr > 0 ? $"{twr:0.0}:1" : "--";
+            if (hoverValueLabel != null) hoverValueLabel.Text = hoverPct > 0 ? $"{hoverPct:0}%" : "--";
             if (flightValueLabel != null) flightValueLabel.Text = flightMins > 0 ? $"{flightMins:0.0} min" : "--";
-            if (sagValueLabel != null) sagValueLabel.Text = $"{sagVolts:0.0} V";
-            if (tempValueLabel != null) tempValueLabel.Text = $"{motorTempC:0}C / {escTempC:0}C";
+            if (sagValueLabel != null) sagValueLabel.Text = batteryInst != null ? $"{sagVolts:0.0} V" : "--";
+            if (tempValueLabel != null)
+                tempValueLabel.Text = motors > 0 ? $"{motorTempC:0}C / {escTempC:0}C" : "--";
 
             if (twrValueLabel != null) twrValueLabel.ForeColor = twr >= 2.0f ? CurrentPalette.Success : CurrentPalette.Warning;
             if (hoverValueLabel != null) hoverValueLabel.ForeColor = hoverPct <= 65f ? CurrentPalette.Success : CurrentPalette.Warning;
             if (sagValueLabel != null) sagValueLabel.ForeColor = sagVolts <= 2.5f ? CurrentPalette.TextPrimary : CurrentPalette.Warning;
             if (tempValueLabel != null) tempValueLabel.ForeColor = (motorTempC > 95f || escTempC > 85f) ? CurrentPalette.Warning : CurrentPalette.TextPrimary;
 
-            if (massMetricLabel != null) massMetricLabel.Text = $"AUW: {liveMass * 1000f:0} g";
-            if (powerMetricLabel != null) powerMetricLabel.Text = $"Draw: {totalCurrentA:0.0} A";
-            if (enduranceMetricLabel != null) enduranceMetricLabel.Text = $"Est. Flight: {(flightMins > 0 ? $"{flightMins:0.0} min" : "--")}";
-            if (payloadMetricLabel != null) payloadMetricLabel.Text = $"Stress/Stab: {frameStressPct:0}%/{stabilityMarginPct:0}%";
+            float cgOffset = 0f;
+            if (Math.Abs(featureProfile.CgOffsetXcm) > 0.01f || Math.Abs(featureProfile.CgOffsetYcm) > 0.01f)
+                cgOffset = MathF.Sqrt(featureProfile.CgOffsetXcm * featureProfile.CgOffsetXcm + featureProfile.CgOffsetYcm * featureProfile.CgOffsetYcm);
+            if (Math.Abs(payloadOffsetCm) > cgOffset) cgOffset = Math.Abs(payloadOffsetCm);
 
-            if (warningsList != null)
+            if (cgValueLabel != null) cgValueLabel.Text = cgOffset > 0.01f ? $"{cgOffset:0.0} cm" : "--";
+            if (inertiaValueLabel != null) inertiaValueLabel.Text = "--";
+            if (yawValueLabel != null) yawValueLabel.Text = yawImbalancePct > 0.01f ? $"{Math.Max(0f, 100f - yawImbalancePct):0}%" : "--";
+
+            var missing = new List<string>();
+            if (frames == 0) missing.Add("Frame");
+            if (motors < expectedMotors) missing.Add("Motors");
+            if (batteryInst == null) missing.Add("Battery");
+            if (missingValueLabel != null) missingValueLabel.Text = missing.Count == 0 ? "None" : string.Join(", ", missing);
+
+            if (overcurrentValueLabel != null)
             {
-                warningsList.BeginUpdate();
-                warningsList.Items.Clear();
-
-                if (frames == 0) warningsList.Items.Add("Missing frame");
-                if (frames == 0) criticalAlerts++;
-                if (motors < 4) warningsList.Items.Add("Low motor count");
-                if (motors < 4) criticalAlerts++;
-                if (batteryInst == null) warningsList.Items.Add("Battery not installed");
-                if (batteryInst == null) criticalAlerts++;
-                if (twr > 0 && twr < 1.8f) warningsList.Items.Add($"Low thrust-to-weight ({twr:0.0}:1)");
-                if (twr > 0 && twr < 1.8f) criticalAlerts++;
-                if (sagVolts > 3.5f) warningsList.Items.Add("High voltage sag");
-                if (totalCurrentA > 80f) warningsList.Items.Add("High current draw");
-                if (motorTempC > 95f) warningsList.Items.Add($"Motor overheating risk ({motorTempC:0}C)");
-                if (escTempC > 85f) warningsList.Items.Add($"ESC overheating risk ({escTempC:0}C)");
-                if (escFailureRiskPct > 35f) warningsList.Items.Add($"ESC failure probability elevated ({escFailureRiskPct:0}%)");
-                if (frameStressPct > 100f) warningsList.Items.Add($"Frame stress high ({frameStressPct:0}%)");
-                if (stabilityMarginPct < 45f) warningsList.Items.Add($"Stability margin low ({stabilityMarginPct:0}%)");
-                if (yawImbalancePct > 15f) warningsList.Items.Add($"Yaw imbalance detected ({yawImbalancePct:0}%)");
-                if (imuVibrationPct > 65f) warningsList.Items.Add($"IMU vibration transfer high ({imuVibrationPct:0}%)");
-                if (simulationMode == SimulationMode.AutonomousMission && waypoints.Count == 0)
-                    warningsList.Items.Add("Autonomous mode active with no waypoints");
-                if (faultInjection.MotorFailure || faultInjection.SensorNoise || faultInjection.GpsDrop || faultInjection.EscThermalCutback)
-                    warningsList.Items.Add("Fault injection enabled");
-                if (crashCount > 0)
-                    warningsList.Items.Add($"Crash events: {crashCount}");
-                warningsList.Items.Add($"Telemetry samples: {telemetry.Count}");
-                warningsList.Items.Add($"Plugins loaded: {loadedPlugins.Count}");
-                warningsList.Items.Add($"Education mode: {(educationMode ? "On" : "Off")}");
-                if (warningsList.Items.Count == 0) warningsList.Items.Add("No critical warnings");
-
-                warningsList.EndUpdate();
+                if (currentForEstimate <= 0.1f) overcurrentValueLabel.Text = "--";
+                else if (currentForEstimate > 80f) overcurrentValueLabel.Text = "High";
+                else if (currentForEstimate > 60f) overcurrentValueLabel.Text = "Moderate";
+                else overcurrentValueLabel.Text = "Low";
             }
 
-            errorsStatus.Text = $" | Errors: {Math.Max(errors, criticalAlerts)}";
+            if (overheatValueLabel != null)
+            {
+                if (motors == 0) overheatValueLabel.Text = "--";
+                else overheatValueLabel.Text = (motorTempC > 95f || escTempC > 85f) ? "High" : "Normal";
+            }
+
+            if (structuralValueLabel != null)
+            {
+                if (frameStressPct <= 0f) structuralValueLabel.Text = "--";
+                else if (frameStressPct > 100f) structuralValueLabel.Text = "High";
+                else if (frameStressPct > 70f) structuralValueLabel.Text = "Moderate";
+                else structuralValueLabel.Text = "Low";
+            }
+
+            if (allUpWeightLabel != null) allUpWeightLabel.Text = liveMass > 0 ? $"All-Up Weight: {liveMass * 1000f:0} g" : "All-Up Weight: --";
+            if (totalThrustLabel != null) totalThrustLabel.Text = liveThrust > 0 ? $"Total Thrust: {liveThrust:0.0} N" : "Total Thrust: --";
+            if (hoverCurrentLabel != null) hoverCurrentLabel.Text = currentForEstimate > 0.1f ? $"Hover Current: {currentForEstimate:0.0} A" : "Hover Current: --";
+            if (efficiencyIndexLabel != null)
+            {
+                if (motors == 0) efficiencyIndexLabel.Text = "Efficiency Index: --";
+                else if (currentForEstimate > 0.1f && liveThrust > 0.1f)
+                    efficiencyIndexLabel.Text = $"Efficiency Index: {(liveThrust / currentForEstimate):0.0}";
+                else
+                    efficiencyIndexLabel.Text = "Efficiency Index: --";
+            }
+            if (stabilityIndexLabel != null)
+            {
+                if (frames == 0 || motors == 0) stabilityIndexLabel.Text = "Stability Index: --";
+                else if (stabilityMarginPct > 0.1f) stabilityIndexLabel.Text = $"Stability Index: {stabilityMarginPct:0}%";
+                else stabilityIndexLabel.Text = "Stability Index: --";
+            }
+
             UpdateFeatureSetPanel();
         }
 
@@ -3368,8 +3459,8 @@ void DrawPhysicsHUD(Graphics g)
                 UseSystemColors = false;
             }
 
-            public override Color MenuStripGradientBegin => Palette.Surface;
-            public override Color MenuStripGradientEnd => Palette.Surface;
+            public override Color MenuStripGradientBegin => Palette.WindowBackground;
+            public override Color MenuStripGradientEnd => Palette.WindowBackground;
             public override Color ToolStripDropDownBackground => Palette.Surface;
             public override Color ImageMarginGradientBegin => Palette.Surface;
             public override Color ImageMarginGradientMiddle => Palette.Surface;
@@ -3405,6 +3496,11 @@ void DrawPhysicsHUD(Graphics g)
             Frame,
             Motor,
             Battery
+        }
+
+        enum Workspace
+        {
+            Assemble
         }
         enum MountType
 {

@@ -12,15 +12,6 @@ namespace SilvuViewfinder
 {
     public partial class Form1
     {
-        enum WorkspaceArea
-        {
-            Assemble,
-            Configurations,
-            FluidAirSimulation,
-            Realtime3D,
-            SoftwareConfiguration
-        }
-
         sealed class FeatureSetProfile
         {
             public float MotorKvOverride { get; set; } = 1850f;
@@ -52,7 +43,6 @@ namespace SilvuViewfinder
         Label openSummary = null!;
         Label eduSummary = null!;
         ListBox pluginBox = null!;
-        ToolStrip workspaceStrip = null!;
         ComboBox modeSelector = null!;
         ComboBox firmwareSelector = null!;
         ComboBox sensorSelector = null!;
@@ -61,119 +51,7 @@ namespace SilvuViewfinder
         CheckBox obstacleToggle = null!;
         CheckBox groundEffectToggle = null!;
         CheckBox educationToggle = null!;
-        readonly Dictionary<WorkspaceArea, ToolStripButton> workspaceButtons = new();
-        WorkspaceArea currentWorkspace = WorkspaceArea.Assemble;
         bool syncingFeaturePanel = false;
-
-        ToolStrip BuildWorkspaceStrip()
-        {
-            workspaceStrip = new ToolStrip
-            {
-                Dock = DockStyle.Top,
-                Height = 38,
-                GripStyle = ToolStripGripStyle.Hidden,
-                AutoSize = false,
-                Padding = new Padding(8, 3, 8, 3),
-                RenderMode = ToolStripRenderMode.Professional,
-                Renderer = toolStripRenderer
-            };
-
-            workspaceStrip.Items.Add(new ToolStripLabel("WORKSPACE")
-            {
-                Margin = new Padding(2, 0, 14, 0),
-                ForeColor = CurrentPalette.TextMuted
-            });
-
-            AddWorkspaceButton("Assemble", WorkspaceArea.Assemble, "Place frame, motors, battery, payload");
-            AddWorkspaceButton("Configurations", WorkspaceArea.Configurations, "Tune component values and profile");
-            AddWorkspaceButton("Fluid / Air Sim", WorkspaceArea.FluidAirSimulation, "Wind, turbulence, drag, stability");
-            AddWorkspaceButton("3D Live Sim", WorkspaceArea.Realtime3D, "Realtime simulation-focused view");
-            AddWorkspaceButton("Software Config", WorkspaceArea.SoftwareConfiguration, "PID, firmware, sensor stack");
-            ApplyWorkspaceStripTheme();
-
-            return workspaceStrip;
-        }
-
-        void AddWorkspaceButton(string label, WorkspaceArea area, string tooltip)
-        {
-            var button = new ToolStripButton(label)
-            {
-                CheckOnClick = true,
-                ToolTipText = tooltip,
-                Margin = new Padding(0, 0, 8, 0),
-                AutoSize = false,
-                Height = 24,
-                Padding = new Padding(10, 2, 10, 2)
-            };
-            button.Click += (_, __) => SetWorkspace(area);
-            workspaceButtons[area] = button;
-            workspaceStrip.Items.Add(button);
-        }
-
-        void SetWorkspace(WorkspaceArea area)
-        {
-            currentWorkspace = area;
-            foreach (var kv in workspaceButtons)
-                kv.Value.Checked = kv.Key == area;
-
-            if (featureTabs != null && !featureTabs.IsDisposed)
-            {
-                switch (area)
-                {
-                    case WorkspaceArea.Assemble:
-                        featureTabs.SelectedIndex = 0;
-                        break;
-                    case WorkspaceArea.Configurations:
-                        featureTabs.SelectedIndex = 0;
-                        break;
-                    case WorkspaceArea.FluidAirSimulation:
-                        featureTabs.SelectedIndex = 1;
-                        break;
-                    case WorkspaceArea.Realtime3D:
-                        featureTabs.SelectedIndex = 4;
-                        break;
-                    case WorkspaceArea.SoftwareConfiguration:
-                        featureTabs.SelectedIndex = 3;
-                        break;
-                }
-            }
-
-            if (area == WorkspaceArea.Realtime3D)
-                runSimButton?.PerformClick();
-
-            ApplyWorkspaceStripTheme();
-            UpdateStatusBar();
-            viewport?.Invalidate();
-        }
-
-        string WorkspaceDisplayName(WorkspaceArea area) => area switch
-        {
-            WorkspaceArea.Assemble => "Assemble",
-            WorkspaceArea.Configurations => "Configurations",
-            WorkspaceArea.FluidAirSimulation => "Fluid/Air Simulation",
-            WorkspaceArea.Realtime3D => "3D Live Simulation",
-            WorkspaceArea.SoftwareConfiguration => "Software Configuration",
-            _ => "Assemble"
-        };
-
-        void ApplyWorkspaceStripTheme()
-        {
-            if (workspaceStrip == null || workspaceStrip.IsDisposed) return;
-
-            workspaceStrip.BackColor = CurrentPalette.Surface;
-            workspaceStrip.ForeColor = CurrentPalette.TextPrimary;
-            workspaceStrip.Renderer = toolStripRenderer;
-
-            foreach (var kv in workspaceButtons)
-            {
-                bool active = kv.Key == currentWorkspace;
-                var button = kv.Value;
-                button.Checked = active;
-                button.BackColor = active ? CurrentPalette.AccentSoft : CurrentPalette.Surface;
-                button.ForeColor = active ? CurrentPalette.Accent : CurrentPalette.TextMuted;
-                button.Font = Font;
-            }
-        }
 
         RoundedPanel BuildFeatureSetCard()
         {
