@@ -74,11 +74,11 @@ export default function App() {
 
       <main className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
-        <aside className="w-80 border-r border-border-dark flex flex-col bg-panel-dark shrink-0">
+        <aside className="w-[300px] xl:w-80 border-r border-border-dark flex flex-col bg-panel-dark shrink-0">
           <div className="p-5">
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#13b6ec] mb-1">Build Structure</h3>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-lg font-bold text-slate-100 tracking-tight">Carbon Fiber X-8</span>
+              <span className="text-base xl:text-lg font-bold text-slate-100 tracking-tight">Carbon Fiber X-8</span>
               <span className="text-[10px] text-primary border border-primary/30 px-2 py-0.5 rounded font-bold tracking-wider">ACTIVE</span>
             </div>
           </div>
@@ -320,10 +320,10 @@ export default function App() {
         </section>
 
         {/* Right Sidebar: Health & Diagnostics */}
-        <aside className="w-80 border-l border-border-dark bg-panel-dark flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
+        <aside className="w-[300px] xl:w-80 border-l border-border-dark bg-panel-dark flex flex-col shrink-0 overflow-y-auto custom-scrollbar">
           <div className="p-5">
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-[#13b6ec] mb-1">Health & Diagnostics</h3>
-            <span className="text-lg font-bold text-slate-100 tracking-tight">Calculated Metrics</span>
+            <span className="text-base xl:text-lg font-bold text-slate-100 tracking-tight">Calculated Metrics</span>
           </div>
 
           <div className="px-5 pb-5 space-y-6">
