@@ -1,0 +1,2117 @@
+
+> temp-app@0.0.0 tauri
+> tauri dev
+
+     Running BeforeDevCommand (`npm run dev`)
+
+> temp-app@0.0.0 dev
+> vite
+
+
+  [32m[1mVITE[22m v7.3.1[39m  [2mready in [0m[1m894[22m[2m[0m ms[22m
+
+  [32mΓ₧£[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32mΓ₧£[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+     Running DevCommand (`cargo  run --no-default-features --color always --`)
+        Info Watching D:\Silvu-viewfinder\src-tauri for changes...
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 27.74s
+     Running `target\debug\app.exe`
+2:02:25 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+2:02:25 pm [vite] (client) Pre-transform error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+2:02:25 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:25 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:26 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:26 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:26 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:27 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:27 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:28 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:28 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:29 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:29 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:29 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:30 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:30 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:31 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:31 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:32 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:32 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:32 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:33 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:33 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:34 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:34 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:35 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:35 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:35 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:36 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:36 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:37 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:37 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:38 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:38 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:38 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:39 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:39 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:40 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:40 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:40 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:41 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:41 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:41 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:41 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:42 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:42 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:43 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:43 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:44 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:44 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:44 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:45 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:45 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:46 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:46 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:46 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:47 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:47 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:48 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:48 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:49 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:49 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:49 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:50 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:50 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:51 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:51 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:52 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:52 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:52 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:53 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:53 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:54 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:54 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:54 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:55 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:55 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:56 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:56 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:57 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:57 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:57 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:58 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:58 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:59 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:59 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:02:59 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:00 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:00 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:01 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:01 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:02 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:02 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:02 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:03 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:03 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:04 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:04 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:05 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:05 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:05 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:06 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:06 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:07 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:07 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:07 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:08 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:09 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:09 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:09 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+2:03:10 pm [vite] Internal server error: Failed to resolve import "../lib/utils" from "src/components/layout/TopNav.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: D:/Silvu-viewfinder/src/components/layout/TopNav.tsx:2:19
+  1  |  import { jsxDEV } from "react/jsx-dev-runtime";
+  2  |  import React from "react";
+  3  |  import { cn } from "../lib/utils";
+     |                      ^
+  4  |  import { Search, User } from "lucide-react";
+  5  |  const TABS = ["Build", "Config", "Simulation", "Debug", "Software", "Testing", "Protocols", "Telemetry"];
+      at TransformPluginContext._formatLog (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28999:43)
+      at TransformPluginContext.error (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28996:14)
+      at normalizeUrl (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27119:18)
+      at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+      at async file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27177:32
+      at async Promise.all (index 2)
+      at async TransformPluginContext.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:27145:4)
+      at async EnvironmentPluginContainer.transform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:28797:14)
+      at async loadAndTransform (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:22670:26)
+      at async viteTransformMiddleware (file:///D:/Silvu-viewfinder/node_modules/vite/dist/node/chunks/config.js:24542:20)
+error: process didn't exit successfully: `target\debug\app.exe` (exit code: 1)

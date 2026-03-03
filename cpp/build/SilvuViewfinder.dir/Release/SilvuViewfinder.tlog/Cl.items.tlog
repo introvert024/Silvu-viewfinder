@@ -1,0 +1,11 @@
+D:\Silvu-viewfinder\cpp\src\main.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\main.obj
+D:\Silvu-viewfinder\cpp\src\MainWindow.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\MainWindow.obj
+D:\Silvu-viewfinder\cpp\src\ViewportWidget.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\ViewportWidget.obj
+D:\Silvu-viewfinder\cpp\src\panels\BuildPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\BuildPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\DiagPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\DiagPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\ConfigPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\ConfigPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\ProtocolPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\ProtocolPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\TelemetryBar.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\TelemetryBar.obj
+D:\Silvu-viewfinder\cpp\src\physics\PhysicsEngine.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\PhysicsEngine.obj
+D:\Silvu-viewfinder\cpp\build\SilvuViewfinder_autogen\mocs_compilation_Release.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\mocs_compilation_Release.obj
+D:\Silvu-viewfinder\cpp\build\SilvuViewfinder_autogen\3YJK5W5UP7_Release\qrc_resources.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Release\SilvuViewfinder_autogen\3YJK5W5UP7_Release\qrc_resources.cpp.obj
