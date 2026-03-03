@@ -28,7 +28,8 @@ namespace SilvuViewfinder
     {
         LiPo,
         LiIon,
-        LiHV
+        LiHV,
+        SolidState
     }
 
     public enum FirmwareProfile

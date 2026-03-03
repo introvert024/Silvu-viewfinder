@@ -6,10 +6,19 @@ using System.Drawing.Drawing2D;
 using System.IO;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Windows.Forms;
+using System.Windows.Forms.Integration;
 using System.Runtime.InteropServices;
+using System.Drawing.Design;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Media3D;
+using System.Windows.Threading;
+using HelixToolkit.Wpf;
 
 namespace SilvuViewfinder
 {
@@ -26,9 +35,24 @@ namespace SilvuViewfinder
         PlacedInstance? selected;
         PartType? pendingAddMode = null;
         string? pendingAddName = null;
+        string? pendingAddAssetId = null;
         Point mousePos;
+        Point lastMouseScreen;
         bool draggingFrame = false;
         PointF frameDragOffset;
+        bool dragUndoCaptured = false;
+
+        readonly Stack<Project> undoStack = new();
+        readonly Stack<Project> redoStack = new();
+
+        // Viewport control
+        float zoomFactor = 1.0f;
+        PointF viewOffset = new PointF(0, 0);
+        const float ViewportDepth = 4.0f;
+        bool isPanning = false;
+        Point lastMousePos;
+        float viewRotation = 0f;
+        bool viewportIs3D = false;
 
         MenuStrip menu = null!;
         Panel titleBarPanel = null!, titleMenuHost = null!;
@@ -38,10 +62,16 @@ namespace SilvuViewfinder
         TreeView projectTree = null!, libraryTree = null!;
         PictureBox viewport = null!;
         Label twrValueLabel = null!, hoverValueLabel = null!, flightValueLabel = null!, sagValueLabel = null!, tempValueLabel = null!;
-        Label cgValueLabel = null!, inertiaValueLabel = null!, yawValueLabel = null!;
+        Label thrustRequiredValueLabel = null!, maxThrustValueLabel = null!, thrustMarginValueLabel = null!, motorTempLimitLabel = null!;
+        Label batteryMaxCurrentLabel = null!, powerHoverCurrentLabel = null!, peakCurrentLabel = null!, escRatingLabel = null!;
+        Label cgValueLabel = null!, rollInertiaValueLabel = null!, pitchInertiaValueLabel = null!, yawInertiaValueLabel = null!, yawValueLabel = null!;
+        Label payloadMaxLabel = null!, payloadCurrentLabel = null!, payloadRemainingLabel = null!;
+        Label massFrameLabel = null!, massMotorsLabel = null!, massEscLabel = null!, massBatteryLabel = null!, massPayloadLabel = null!;
         Label missingValueLabel = null!, overcurrentValueLabel = null!, overheatValueLabel = null!, structuralValueLabel = null!;
         Label allUpWeightLabel = null!, totalThrustLabel = null!, hoverCurrentLabel = null!, efficiencyIndexLabel = null!, stabilityIndexLabel = null!;
         Button saveBuildButton = null!, exportConfigButton = null!;
+        Panel cgRowPanel = null!, rollInertiaRowPanel = null!, pitchInertiaRowPanel = null!, yawInertiaRowPanel = null!, yawStabilityRowPanel = null!;
+        Label stabilityHeaderLabel = null!;
         int uiRefreshTick = 0;
         readonly Random random = new Random();
         readonly Stopwatch simClock = new Stopwatch();
@@ -49,6 +79,7 @@ namespace SilvuViewfinder
         readonly List<Waypoint> waypoints = new List<Waypoint>();
         readonly List<string> loadedPlugins = new List<string>();
         readonly List<BuildBenchmark> benchmarkHistory = new List<BuildBenchmark>();
+        readonly Dictionary<string, Image> customImageCache = new(StringComparer.OrdinalIgnoreCase);
         SimulationMode simulationMode = SimulationMode.ManualFpv;
         SimulationEnvironment environmentModel = new SimulationEnvironment();
         FaultInjection faultInjection = new FaultInjection();
@@ -85,6 +116,8 @@ namespace SilvuViewfinder
         ContextMenuStrip projectContextMenu = null!;
         // context menu for the library tree
         ContextMenuStrip libraryContextMenu = null!;
+        // context menu for the viewport
+        ContextMenuStrip viewportContextMenu = null!;
         ToolTip partToolTip = null!;
         System.Windows.Forms.Timer renderTimer = null!;
         ToolStripProfessionalRenderer toolStripRenderer = null!;
@@ -111,6 +144,18 @@ namespace SilvuViewfinder
         bool autoSimUseParts = true;
         const float SimStepSeconds = 0.016f;
         readonly List<(ToolStripItem Item, RibbonIcon Icon)> ribbonIconItems = new();
+        static readonly HashSet<string> CustomCategories = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Custom",
+            "Payload",
+            "Landing Gear",
+            "Aerodynamic Add-ons",
+            "Telemetry",
+            "Power Distribution",
+            "Safety",
+            "Advanced",
+            "Industrial"
+        };
 
         readonly struct UiPalette
         {
@@ -288,6 +333,62 @@ float lastError = 0;
             KeyPreview = true;
             SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
 
+            this.KeyDown += (s, e) =>
+            {
+                if (e.Control && e.KeyCode == Keys.Z)
+                {
+                    Undo();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Control && (e.KeyCode == Keys.Y || (e.Shift && e.KeyCode == Keys.Z)))
+                {
+                    Redo();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.KeyCode == Keys.Delete)
+                {
+                    DeleteSelectedPart();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Control && e.KeyCode == Keys.C)
+                {
+                    CopySelectedPart();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Control && e.KeyCode == Keys.V)
+                {
+                    PasteClipboardPart();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Control && e.Shift && e.KeyCode == Keys.D)
+                {
+                    DuplicateSelectedPart();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.Control && e.KeyCode == Keys.D3)
+                {
+                    ToggleViewport3D();
+                    e.Handled = true;
+                    return;
+                }
+                if (e.KeyCode == Keys.A)
+                {
+                    viewRotation -= 5.0f;
+                    viewport.Invalidate();
+                }
+                else if (e.KeyCode == Keys.D)
+                {
+                    viewRotation += 5.0f;
+                    viewport.Invalidate();
+                }
+            };
+
             BuildUI();
             Shown += (_, __) => ConfigureNavigationSplit();
             simClock.Start();
@@ -329,6 +430,12 @@ float lastError = 0;
             fileMenu.DropDownItems.Add(CreateMenuItem("Exit", Keys.Alt | Keys.F4, (_,__) => Close()));
 
             var editMenu = new ToolStripMenuItem("Edit");
+            editMenu.DropDownItems.Add(CreateMenuItem("Undo", Keys.Control | Keys.Z, (_, __) => Undo()));
+            editMenu.DropDownItems.Add(CreateMenuItem("Redo", Keys.Control | Keys.Y, (_, __) => Redo()));
+            editMenu.DropDownItems.Add(new ToolStripSeparator());
+            editMenu.DropDownItems.Add(CreateMenuItem("Copy Selected Part", Keys.Control | Keys.C, (_, __) => CopySelectedPart()));
+            editMenu.DropDownItems.Add(CreateMenuItem("Paste", Keys.Control | Keys.V, (_, __) => PasteClipboardPart()));
+            editMenu.DropDownItems.Add(new ToolStripSeparator());
             editMenu.DropDownItems.Add(CreateMenuItem("Delete Selected Part", Keys.Delete, (_, __) => DeleteSelectedPart()));
             editMenu.DropDownItems.Add(CreateMenuItem("Duplicate Selected Part", Keys.Control | Keys.Shift | Keys.D, (_, __) => DuplicateSelectedPart()));
             editMenu.DropDownItems.Add(new ToolStripSeparator());
@@ -336,6 +443,7 @@ float lastError = 0;
 
             var viewMenu = new ToolStripMenuItem("View");
             viewMenu.DropDownItems.Add(CreateMenuItem("Toggle Dark Mode", Keys.Control | Keys.D, (_,__) => ToggleDark()));
+            viewMenu.DropDownItems.Add(CreateMenuItem("Toggle 3D View", Keys.Control | Keys.D3, (_,__) => ToggleViewport3D()));
             
             var assetsMenu = new ToolStripMenuItem("Assets");
             assetsMenu.DropDownItems.Add(CreateMenuItem("Import Asset...", Keys.Control | Keys.I, (_,__) => ImportAsset()));
@@ -353,6 +461,7 @@ float lastError = 0;
             newAsset.DropDownItems.Add("Antenna", null, (_,__) => CreateNewAsset("Antennas"));
             newAsset.DropDownItems.Add("Buzzer", null, (_,__) => CreateNewAsset("Buzzers"));
             newAsset.DropDownItems.Add("LED", null, (_,__) => CreateNewAsset("LEDs"));
+            newAsset.DropDownItems.Add("Custom Component", null, (_,__) => CreateNewAsset("Custom"));
             assetsMenu.DropDownItems.Add(newAsset);
 
             var settingsMenu = new ToolStripMenuItem("Settings");
@@ -802,7 +911,9 @@ float lastError = 0;
                                 MessageBox.Show("Cannot delete the frame.", "Delete", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                                 return;
                             }
+                            var snapshot = CaptureUndoSnapshot();
                             project.Instances.Remove(p);
+                            CommitUndoSnapshot(snapshot);
                             OnProjectStructureChanged();
                         }
                     });
@@ -824,25 +935,13 @@ float lastError = 0;
                     var copyItem = new ToolStripMenuItem("Copy", null, (_,__) =>
                     {
                         if (projectTree.SelectedNode?.Tag is PlacedInstance p)
-                        {
-                            clipboardPart = new PlacedInstance { AssetId = p.AssetId, Type = p.Type, Position = p.Position, MountIndex = p.MountIndex };
-                        }
+                            selected = p;
+                        CopySelectedPart();
                     });
 
                     var pasteItem = new ToolStripMenuItem("Paste", null, (_,__) =>
                     {
-                        if (clipboardPart != null && project != null)
-                        {
-                            var p = new PlacedInstance
-                            {
-                                AssetId = clipboardPart.AssetId,
-                                Type = clipboardPart.Type,
-                                Position = new PointF(clipboardPart.Position.X + 10, clipboardPart.Position.Y + 10),
-                                MountIndex = clipboardPart.MountIndex
-                            };
-                            project.Instances.Add(p);
-                            OnProjectStructureChanged();
-                        }
+                        PasteClipboardPart();
                     });
 
                     projectContextMenu.Items.AddRange(new ToolStripItem[] { infoItem, deleteItem, saveCustomItem, new ToolStripSeparator(), copyItem, pasteItem });
@@ -871,7 +970,8 @@ float lastError = 0;
                 if (e.Item is TreeNode n && n.Parent != null)
                 {
                     var category = n.Parent.Tag as string ?? n.Parent.Text;
-                    dragging = new LibraryPart { Category = category, Name = n.Text };
+                    var asset = n.Tag as Asset;
+                    dragging = new LibraryPart { Category = category, Name = n.Text, AssetId = asset?.Id ?? "" };
                     DoDragDrop(dragging, DragDropEffects.Copy);
                 }
             };
@@ -880,6 +980,7 @@ float lastError = 0;
                 if (e.Node == null || e.Node.Parent == null) return;
                 if (project == null) return;
                 var category = e.Node.Parent.Tag as string ?? e.Node.Parent.Text;
+                pendingAddAssetId = null;
                 if (category == "Frames")
                 {
                     project.Instances.Clear();
@@ -992,6 +1093,15 @@ float lastError = 0;
                     viewport.Cursor = Cursors.Cross;
                     return;
                 }
+
+                if (IsCustomCategory(category))
+                {
+                    pendingAddMode = PartType.CustomComponent;
+                    pendingAddName = e.Node?.Text;
+                    pendingAddAssetId = (e.Node?.Tag as Asset)?.Id;
+                    viewport.Cursor = Cursors.Cross;
+                    return;
+                }
             };
 
             libraryTree.NodeMouseClick += (s, e) =>
@@ -1061,7 +1171,7 @@ float lastError = 0;
             var frameTuningPanel = new Panel
             {
                 Dock = DockStyle.Bottom,
-                Height = 112,
+                Height = 56,
                 Padding = new Padding(6, 6, 6, 4),
                 BackColor = Color.Transparent
             };
@@ -1070,22 +1180,13 @@ float lastError = 0;
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 3,
-                RowCount = 3,
+                RowCount = 1,
                 BackColor = Color.Transparent
             };
             tuningTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110f));
             tuningTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
             tuningTable.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 70f));
             tuningTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
-            tuningTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
-            tuningTable.RowStyles.Add(new RowStyle(SizeType.Absolute, 30f));
-
-            var frameArmLabel = new Label
-            {
-                Text = "Arm Length",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
-            };
 
             frameArmUnitSelector = new ComboBox
             {
@@ -1103,13 +1204,6 @@ float lastError = 0;
                 DecimalPlaces = 1,
                 Increment = 1,
                 TextAlign = HorizontalAlignment.Right
-            };
-
-            var frameBodyLabel = new Label
-            {
-                Text = "Body Size",
-                Dock = DockStyle.Fill,
-                TextAlign = ContentAlignment.MiddleLeft
             };
 
             frameBodyUnitSelector = new ComboBox
@@ -1180,14 +1274,8 @@ float lastError = 0;
                 ApplyEscLayout(desired);
             };
 
-            tuningTable.Controls.Add(frameArmLabel, 0, 0);
-            tuningTable.Controls.Add(frameArmLengthInput, 1, 0);
-            tuningTable.Controls.Add(frameArmUnitSelector, 2, 0);
-            tuningTable.Controls.Add(frameBodyLabel, 0, 1);
-            tuningTable.Controls.Add(frameBodySizeInput, 1, 1);
-            tuningTable.Controls.Add(frameBodyUnitSelector, 2, 1);
-            tuningTable.Controls.Add(escLayoutLabel, 0, 2);
-            tuningTable.Controls.Add(escLayoutSelector, 1, 2);
+            tuningTable.Controls.Add(escLayoutLabel, 0, 0);
+            tuningTable.Controls.Add(escLayoutSelector, 1, 0);
             tuningTable.SetColumnSpan(escLayoutSelector, 2);
 
             frameTuningPanel.Controls.Add(tuningTable);
@@ -1245,7 +1333,7 @@ float lastError = 0;
                 var label = new Label
                 {
                     Dock = DockStyle.Left,
-                    Width = 160,
+                    Width = 230,
                     TextAlign = ContentAlignment.MiddleLeft,
                     Text = labelText,
                     Padding = new Padding(2, 0, 0, 0)
@@ -1301,14 +1389,76 @@ float lastError = 0;
             var perfHeader = CreateSectionHeader("Performance");
             var perf1 = CreateMetricRow("Thrust-to-Weight", out twrValueLabel);
             var perf2 = CreateMetricRow("Hover Throttle", out hoverValueLabel);
-            var perf3 = CreateMetricRow("Estimated Flight Time", out flightValueLabel);
-            var perf4 = CreateMetricRow("Voltage Sag", out sagValueLabel);
-            var perf5 = CreateMetricRow("Motor Temperature", out tempValueLabel);
+            var perf3 = CreateMetricRow("Hover Thrust Required", out thrustRequiredValueLabel);
+            var perf4 = CreateMetricRow("Max Available Thrust", out maxThrustValueLabel);
+            var perf5 = CreateMetricRow("Thrust Margin", out thrustMarginValueLabel);
+            var perf6 = CreateMetricRow("Voltage Sag", out sagValueLabel);
+            var perf7 = CreateMetricRow("Motor Temp (Predicted @ Hover)", out tempValueLabel);
+            var perf8 = CreateMetricRow("Max Limit", out motorTempLimitLabel);
 
-            var stabilityHeader = CreateSectionHeader("Stability");
-            var stab1 = CreateMetricRow("CG Offset", out cgValueLabel);
-            var stab2 = CreateMetricRow("Inertia Index", out inertiaValueLabel);
-            var stab3 = CreateMetricRow("Yaw Stability", out yawValueLabel);
+            var powerHeader = CreateSectionHeader("Power Integrity");
+            var power1 = CreateMetricRow("Battery Max Continuous Current", out batteryMaxCurrentLabel);
+            var power2 = CreateMetricRow("Estimated Hover Current", out powerHoverCurrentLabel);
+            var power3 = CreateMetricRow("Peak Estimated Current", out peakCurrentLabel);
+            var power4 = CreateMetricRow("ESC Rating", out escRatingLabel);
+
+            stabilityHeaderLabel = CreateSectionHeader("Stability");
+            cgRowPanel = CreateMetricRow("CG Offset", out cgValueLabel);
+            rollInertiaRowPanel = CreateMetricRow("Roll Inertia", out rollInertiaValueLabel);
+            pitchInertiaRowPanel = CreateMetricRow("Pitch Inertia", out pitchInertiaValueLabel);
+            yawInertiaRowPanel = CreateMetricRow("Yaw Inertia", out yawInertiaValueLabel);
+            yawStabilityRowPanel = CreateMetricRow("Yaw Stability", out yawValueLabel);
+
+            var payloadHeader = CreateSectionHeader("Payload Capacity");
+            var payload1 = CreateMetricRow("Max Payload (Safe)", out payloadMaxLabel);
+            var payload2 = CreateMetricRow("Current Payload", out payloadCurrentLabel);
+            var payload3 = CreateMetricRow("Remaining Capacity", out payloadRemainingLabel);
+
+            var massHeaderPanel = new Panel { Dock = DockStyle.Top, Height = 26 };
+            var massHeaderLabel = new Label
+            {
+                Text = "Mass Breakdown",
+                Dock = DockStyle.Left,
+                Height = 26,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Padding = new Padding(2, 4, 0, 0),
+                Font = new Font(Font.FontFamily, 9f, FontStyle.Bold, GraphicsUnit.Point)
+            };
+            var massToggleButton = new Button
+            {
+                Name = "btnMassToggle",
+                Text = "Hide",
+                Dock = DockStyle.Right,
+                Width = 54,
+                Height = 22,
+                FlatStyle = FlatStyle.Flat
+            };
+            massToggleButton.FlatAppearance.BorderSize = 0;
+            massHeaderPanel.Controls.Add(massToggleButton);
+            massHeaderPanel.Controls.Add(massHeaderLabel);
+
+            var massBody = new Panel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink
+            };
+            var mass1 = CreateMetricRow("Frame", out massFrameLabel);
+            var mass2 = CreateMetricRow("Motors", out massMotorsLabel);
+            var mass3 = CreateMetricRow("ESC", out massEscLabel);
+            var mass4 = CreateMetricRow("Battery", out massBatteryLabel);
+            var mass5 = CreateMetricRow("Payload", out massPayloadLabel);
+            massBody.Controls.Add(mass5);
+            massBody.Controls.Add(mass4);
+            massBody.Controls.Add(mass3);
+            massBody.Controls.Add(mass2);
+            massBody.Controls.Add(mass1);
+
+            massToggleButton.Click += (_, __) =>
+            {
+                massBody.Visible = !massBody.Visible;
+                massToggleButton.Text = massBody.Visible ? "Hide" : "Show";
+            };
 
             var alertHeader = CreateSectionHeader("Alerts");
             var alert1 = CreateMetricRow("Missing Components", out missingValueLabel);
@@ -1321,10 +1471,26 @@ float lastError = 0;
             buildHealthBody.Controls.Add(alert2);
             buildHealthBody.Controls.Add(alert1);
             buildHealthBody.Controls.Add(alertHeader);
-            buildHealthBody.Controls.Add(stab3);
-            buildHealthBody.Controls.Add(stab2);
-            buildHealthBody.Controls.Add(stab1);
-            buildHealthBody.Controls.Add(stabilityHeader);
+            buildHealthBody.Controls.Add(massBody);
+            buildHealthBody.Controls.Add(massHeaderPanel);
+            buildHealthBody.Controls.Add(payload3);
+            buildHealthBody.Controls.Add(payload2);
+            buildHealthBody.Controls.Add(payload1);
+            buildHealthBody.Controls.Add(payloadHeader);
+            buildHealthBody.Controls.Add(yawStabilityRowPanel);
+            buildHealthBody.Controls.Add(yawInertiaRowPanel);
+            buildHealthBody.Controls.Add(pitchInertiaRowPanel);
+            buildHealthBody.Controls.Add(rollInertiaRowPanel);
+            buildHealthBody.Controls.Add(cgRowPanel);
+            buildHealthBody.Controls.Add(stabilityHeaderLabel);
+            buildHealthBody.Controls.Add(power4);
+            buildHealthBody.Controls.Add(power3);
+            buildHealthBody.Controls.Add(power2);
+            buildHealthBody.Controls.Add(power1);
+            buildHealthBody.Controls.Add(powerHeader);
+            buildHealthBody.Controls.Add(perf8);
+            buildHealthBody.Controls.Add(perf7);
+            buildHealthBody.Controls.Add(perf6);
             buildHealthBody.Controls.Add(perf5);
             buildHealthBody.Controls.Add(perf4);
             buildHealthBody.Controls.Add(perf3);
@@ -1343,10 +1509,24 @@ float lastError = 0;
             viewport = new BufferedPictureBox { Dock = DockStyle.Fill, AllowDrop = true };
             viewport.Paint += DrawViewport;
             viewport.DragEnter += (_, e) => e.Effect = DragDropEffects.Copy;
+            viewport.MouseWheel += (s, e) =>
+            {
+                var mouseWorld = ScreenToWorld(e.Location);
+                float newZoom = zoomFactor * (e.Delta > 0 ? 1.1f : 0.9f);
+                zoomFactor = Math.Clamp(newZoom, 0.1f, 10.0f);
+
+                viewOffset = new PointF(
+                    e.Location.X - mouseWorld.X * zoomFactor,
+                    e.Location.Y - mouseWorld.Y * zoomFactor
+                );
+
+                viewport.Invalidate();
+            };
             viewport.DragDrop += (_, e) =>
             {
                 if (dragging == null || project == null) return;
-                var p = viewport.PointToClient(new Point(e.X, e.Y));
+                var snapshot = CaptureUndoSnapshot();
+                var p = ScreenToWorld(viewport.PointToClient(new Point(e.X, e.Y)));
                 var pt = new PointF(p.X, p.Y);
 
                 if (dragging.Category == "Frames")
@@ -1361,6 +1541,7 @@ float lastError = 0;
                         Position = pt
                     });
 
+                    CommitUndoSnapshot(snapshot);
                     OnProjectStructureChanged();
 
                     // clear drag/add state
@@ -1422,9 +1603,14 @@ float lastError = 0;
                 {
                     added = AddLed(pt, dragging.Name);
                 }
+                else if (IsCustomCategory(dragging.Category))
+                {
+                    added = AddCustomComponent(pt, dragging.Name, dragging.AssetId);
+                }
 
                 if (added)
                 {
+                    CommitUndoSnapshot(snapshot);
                     OnProjectStructureChanged();
 
                     // clear drag/add state
@@ -1477,7 +1663,7 @@ float lastError = 0;
             allUpWeightLabel = CreateMetricLabel("All-Up Weight: --");
             totalThrustLabel = CreateMetricLabel("Total Thrust: --");
             hoverCurrentLabel = CreateMetricLabel("Hover Current: --");
-            efficiencyIndexLabel = CreateMetricLabel("Efficiency Index: --");
+            efficiencyIndexLabel = CreateMetricLabel("Power-to-Weight Efficiency Score: --");
             stabilityIndexLabel = CreateMetricLabel("Stability Index: --");
 
             metricsTable.Controls.Add(allUpWeightLabel, 0, 0);
@@ -1543,15 +1729,44 @@ float lastError = 0;
             centerLayout.Controls.Add(quickMetricsCard, 0, 1);
             centerLayout.Controls.Add(actionPanel, 0, 2);
 
+            viewport.MouseUp += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Middle)
+                {
+                    isPanning = false;
+                    viewport.Cursor = Cursors.Default;
+                }
+
+                if (draggingFrame)
+                {
+                    draggingFrame = false;
+                    dirty = true;
+                    UpdateStatusBar();
+                    viewport.Cursor = Cursors.Default;
+                }
+            };
+
             viewport.MouseMove += (s, e) =>
             {
-                mousePos = e.Location;
+                lastMouseScreen = e.Location;
+                var worldPos = ScreenToWorld(e.Location);
+                mousePos = new Point((int)worldPos.X, (int)worldPos.Y);
+
+                if (isPanning)
+                {
+                    viewOffset.X += e.Location.X - lastMousePos.X;
+                    viewOffset.Y += e.Location.Y - lastMousePos.Y;
+                    lastMousePos = e.Location;
+                    viewport.Invalidate();
+                    return;
+                }
+                
                 if (draggingFrame && project != null)
                 {
                     var frame = GetFrame();
                     if (frame != null)
                     {
-                        var newPos = new PointF(e.Location.X - frameDragOffset.X, e.Location.Y - frameDragOffset.Y);
+                        var newPos = new PointF(worldPos.X - frameDragOffset.X, worldPos.Y - frameDragOffset.Y);
                         var delta = new PointF(newPos.X - frame.Position.X, newPos.Y - frame.Position.Y);
                         frame.Position = newPos;
                         foreach (var p in project.Instances)
@@ -1576,160 +1791,227 @@ float lastError = 0;
                 if (pendingAddMode != null)
                     viewport.Invalidate();
                 else
-                    viewport.Cursor = (project != null && HitTestFrame(e.Location)) ? Cursors.SizeAll : Cursors.Default;
+                    viewport.Cursor = (project != null && HitTestFrame(worldPos)) ? Cursors.SizeAll : Cursors.Default;
             };
 
             viewport.MouseDown += (s, e) =>
             { 
+                if (e.Button == MouseButtons.Middle)
+                {
+                    isPanning = true;
+                    lastMousePos = e.Location;
+                    viewport.Cursor = Cursors.NoMove2D;
+                    return;
+                }
+
+                var worldPos = ScreenToWorld(e.Location);
                 // Right-click deletes non-frame parts under the cursor
                 if (e.Button == MouseButtons.Right && project != null)
                 {
-                    var toRemove = new List<PlacedInstance>();
-                    foreach (var p in project.Instances)
-                    {
-                        if (p.Type == PartType.Frame) continue;
-                        var worldPos = GetPartWorldPosition(p);
-                        if (Distance(worldPos, e.Location) < 20)
-                            toRemove.Add(p);
-                    }
-                    project.Instances.RemoveAll(p => toRemove.Contains(p));
-                    if (toRemove.Count > 0)
-                    {
-                        OnProjectStructureChanged();
-                    }
-                    return; 
+                    selected = HitTestPart(worldPos);
+                    ShowViewportContextMenu(e.Location);
+                    return;
                 }
 
                 // Left-click: if user selected a part in library, place it now
                 if (e.Button == MouseButtons.Left && project != null && pendingAddMode != null)
                 {
+                    var snapshot = CaptureUndoSnapshot();
                     if (pendingAddMode == PartType.Motor)
                     {
-                        bool added = AddMotor(e.Location, pendingAddName ?? "Motor");
+                        bool added = AddMotor(worldPos, pendingAddName ?? "Motor");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.Battery)
                     {
-                        bool added = AddBattery(e.Location, pendingAddName ?? "Battery");
+                        bool added = AddBattery(worldPos, pendingAddName ?? "Battery");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.ESC)
                     {
-                        bool added = AddEsc(e.Location, pendingAddName ?? "ESC");
+                        bool added = AddEsc(worldPos, pendingAddName ?? "ESC");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.FlightController)
                     {
-                        bool added = AddFlightController(e.Location, pendingAddName ?? "Flight Controller");
+                        bool added = AddFlightController(worldPos, pendingAddName ?? "Flight Controller");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.Propeller)
                     {
-                        bool added = AddPropeller(e.Location, pendingAddName ?? "Propeller");
+                        bool added = AddPropeller(worldPos, pendingAddName ?? "Propeller");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.Camera)
                     {
-                        bool added = AddCamera(e.Location, pendingAddName ?? "Camera");
+                        bool added = AddCamera(worldPos, pendingAddName ?? "Camera");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.Receiver)
                     {
-                        bool added = AddReceiver(e.Location, pendingAddName ?? "Receiver");
+                        bool added = AddReceiver(worldPos, pendingAddName ?? "Receiver");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.GPS)
                     {
-                        bool added = AddGps(e.Location, pendingAddName ?? "GPS");
+                        bool added = AddGps(worldPos, pendingAddName ?? "GPS");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.VTX)
                     {
-                        bool added = AddVtx(e.Location, pendingAddName ?? "VTX");
+                        bool added = AddVtx(worldPos, pendingAddName ?? "VTX");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.Antenna)
                     {
-                        bool added = AddAntenna(e.Location, pendingAddName ?? "Antenna");
+                        bool added = AddAntenna(worldPos, pendingAddName ?? "Antenna");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.Buzzer)
                     {
-                        bool added = AddBuzzer(e.Location, pendingAddName ?? "Buzzer");
+                        bool added = AddBuzzer(worldPos, pendingAddName ?? "Buzzer");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                     else if (pendingAddMode == PartType.LED)
                     {
-                        bool added = AddLed(e.Location, pendingAddName ?? "LED");
+                        bool added = AddLed(worldPos, pendingAddName ?? "LED");
                         pendingAddMode = null;
                         pendingAddName = null;
                         viewport.Cursor = Cursors.Default;
-                        if (added) OnProjectStructureChanged();
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
+                        return;
+                    }
+                    else if (pendingAddMode == PartType.CustomComponent)
+                    {
+                        bool added = AddCustomComponent(worldPos, pendingAddName ?? "Custom Component", pendingAddAssetId);
+                        pendingAddMode = null;
+                        pendingAddName = null;
+                        pendingAddAssetId = null;
+                        viewport.Cursor = Cursors.Default;
+                        if (added)
+                        {
+                            CommitUndoSnapshot(snapshot);
+                            OnProjectStructureChanged();
+                        }
                         return;
                     }
                 }
 
-                if (e.Button == MouseButtons.Left && project != null && pendingAddMode == null && HitTestFrame(e.Location))
+                if (e.Button == MouseButtons.Left && project != null && pendingAddMode == null && HitTestFrame(worldPos))
                 {
                     var frame = GetFrame();
                     if (frame != null)
                     {
+                        if (!dragUndoCaptured)
+                        {
+                            CommitUndoSnapshot(CaptureUndoSnapshot());
+                            dragUndoCaptured = true;
+                        }
                         draggingFrame = true;
-                        frameDragOffset = new PointF(e.Location.X - frame.Position.X, e.Location.Y - frame.Position.Y);
+                        frameDragOffset = new PointF(worldPos.X - frame.Position.X, worldPos.Y - frame.Position.Y);
                         viewport.Cursor = Cursors.SizeAll;
                     }
                 }
             };
-
+            
             viewport.MouseUp += (_, __) =>
             {
                 if (draggingFrame)
                 {
                     draggingFrame = false;
+                    dragUndoCaptured = false;
                     dirty = true;
                     UpdateStatusBar();
                     viewport.Cursor = Cursors.Default;
@@ -2716,7 +2998,7 @@ float lastError = 0;
                         button.FlatAppearance.BorderSize = 0;
                         button.Font = new Font("Segoe UI", 9f, FontStyle.Regular, GraphicsUnit.Point);
                     }
-                    else if (button.Name == "btnSaveBuild" || button.Name == "btnExportConfig")
+                    else if (button.Name == "btnSaveBuild" || button.Name == "btnExportConfig" || button.Name == "btnMassToggle")
                     {
                         button.FlatAppearance.BorderSize = 1;
                         button.FlatAppearance.BorderColor = palette.Border;
@@ -2966,6 +3248,16 @@ float lastError = 0;
                     var ledAsset = AssetLibrary.Get(p.AssetId) as LedAsset;
                     totalMassKg += ledAsset?.MassKg > 0 ? ledAsset.MassKg : PhysicsDatabase.LedMass();
                 }
+                else if (p.Type == PartType.CustomComponent)
+                {
+                    var customAsset = AssetLibrary.Get(p.AssetId) as CustomComponentAsset;
+                    if (customAsset != null)
+                    {
+                        totalMassKg += customAsset.MassKg;
+                        if (customAsset.PowerDrawA > 0f)
+                            totalCurrentA += customAsset.PowerDrawA;
+                    }
+                }
             }
 
             float profileCgOffsetCm = MathF.Sqrt(
@@ -3047,6 +3339,7 @@ float lastError = 0;
             {
                 BatteryChemistry.LiIon => 0.028f,
                 BatteryChemistry.LiHV => 0.016f,
+                BatteryChemistry.SolidState => 0.010f,
                 _ => 0.020f
             };
             chemistrySagCoeff *= featureProfile.BatterySagBias;
@@ -3135,6 +3428,8 @@ float lastError = 0;
             projectPath = null;
             dirty = false;
             waypoints.Clear();
+            undoStack.Clear();
+            redoStack.Clear();
 
             SyncFeatureProfileFromBuild();
             ResetPhysicsState();
@@ -3178,6 +3473,8 @@ float lastError = 0;
             projectPath = ofd.FileName;
             dirty = false;
             waypoints.Clear();
+            undoStack.Clear();
+            redoStack.Clear();
             SyncFeatureProfileFromBuild();
             ResetPhysicsState();
             RefreshTree();
@@ -3185,10 +3482,48 @@ float lastError = 0;
             viewport.Invalidate();
         }
 
+        Project CloneProject(Project source)
+        {
+            var json = JsonSerializer.Serialize(source);
+            return JsonSerializer.Deserialize<Project>(json) ?? new Project { Name = source.Name };
+        }
+
+        Project? CaptureUndoSnapshot()
+        {
+            if (project == null) return null;
+            return CloneProject(project);
+        }
+
+        void CommitUndoSnapshot(Project? snapshot)
+        {
+            if (snapshot == null) return;
+            undoStack.Push(snapshot);
+            redoStack.Clear();
+        }
+
+        void Undo()
+        {
+            if (project == null || undoStack.Count == 0) return;
+            redoStack.Push(CloneProject(project));
+            project = undoStack.Pop();
+            selected = null;
+            OnProjectStructureChanged();
+        }
+
+        void Redo()
+        {
+            if (project == null || redoStack.Count == 0) return;
+            undoStack.Push(CloneProject(project));
+            project = redoStack.Pop();
+            selected = null;
+            OnProjectStructureChanged();
+        }
+
         // ================= CORE =================
         void AddPart(string cat, string name, int x, int y)
         {
             var pt = new PointF(x, y);
+            var snapshot = CaptureUndoSnapshot();
             bool added = false;
 
             if (cat == "Motors")
@@ -3239,6 +3574,10 @@ float lastError = 0;
             {
                 added = AddLed(pt, name);
             }
+            else if (IsCustomCategory(cat))
+            {
+                added = AddCustomComponent(pt, name);
+            }
             else if (cat == "Frames")
             {
                 project!.Instances.Clear();
@@ -3252,7 +3591,44 @@ float lastError = 0;
             }
 
             if (added)
+            {
+                CommitUndoSnapshot(snapshot);
                 OnProjectStructureChanged();
+            }
+        }
+
+        void CopySelectedPart()
+        {
+            if (selected == null) return;
+            clipboardPart = new PlacedInstance
+            {
+                AssetId = selected.AssetId,
+                Type = selected.Type,
+                Position = selected.Position,
+                MountIndex = selected.MountIndex
+            };
+        }
+
+        void PasteClipboardPart()
+        {
+            if (clipboardPart == null || project == null) return;
+            var snapshot = CaptureUndoSnapshot();
+            var p = new PlacedInstance
+            {
+                AssetId = clipboardPart.AssetId,
+                Type = clipboardPart.Type,
+                Position = new PointF(clipboardPart.Position.X + 10, clipboardPart.Position.Y + 10),
+                MountIndex = clipboardPart.MountIndex
+            };
+            project.Instances.Add(p);
+            CommitUndoSnapshot(snapshot);
+            OnProjectStructureChanged();
+        }
+
+        void ToggleViewport3D()
+        {
+            viewportIs3D = !viewportIs3D;
+            viewport.Invalidate();
         }
 
         void RefreshTree()
@@ -3324,7 +3700,9 @@ float lastError = 0;
                 {
                     var escAsset = AssetLibrary.Get(esc.AssetId) as ESCAsset;
                     var escName = escAsset?.Name ?? esc.AssetId;
-                    string specs = escAsset != null ? $"{escAsset.ContinuousCurrent:0}A" : "--";
+                    string specs = escAsset != null
+                        ? $"{escAsset.ContinuousCurrent:0}A | {escAsset.VoltageRating}"
+                        : "--";
                     float weight = escAsset?.MassKg > 0 ? escAsset.MassKg : PhysicsDatabase.EscMass();
                     AddComponentNode(escGroup, escName, esc, specs, WeightText(weight), "--");
                 }
@@ -3352,7 +3730,7 @@ float lastError = 0;
             {
                 var fcGroup = CreateGroupNode("Flight Controller");
                 var fcAsset = AssetLibrary.Get(fcInst.AssetId) as FlightControllerAsset;
-                string specs = fcAsset != null ? $"{fcAsset.MCU}" : "--";
+                string specs = fcAsset != null ? $"{fcAsset.MCU} | {fcAsset.MountSizeMm:0.0}mm" : "--";
                 float weight = fcAsset?.MassKg > 0 ? fcAsset.MassKg : PhysicsDatabase.FcMass();
                 AddComponentNode(fcGroup, fcAsset?.Name ?? "FC", fcInst, specs, WeightText(weight), "--");
                 projectTree.Nodes.Add(fcGroup);
@@ -3377,7 +3755,7 @@ float lastError = 0;
             {
                 var camGroup = CreateGroupNode("Camera");
                 var camAsset = AssetLibrary.Get(camInst.AssetId) as CameraAsset;
-                string specs = camAsset != null ? camAsset.Resolution : "--";
+                string specs = camAsset != null ? $"{camAsset.SystemType} | {camAsset.FormFactor}" : "--";
                 float weight = camAsset?.MassKg > 0 ? camAsset.MassKg : PhysicsDatabase.CameraMass();
                 AddComponentNode(camGroup, camAsset?.Name ?? "Camera", camInst, specs, WeightText(weight), "--");
                 projectTree.Nodes.Add(camGroup);
@@ -3449,6 +3827,31 @@ float lastError = 0;
                 projectTree.Nodes.Add(ledGroup);
             }
 
+            var customInsts = project.Instances.Where(p => p.Type == PartType.CustomComponent).ToList();
+            if (customInsts.Count > 0)
+            {
+                var groups = new Dictionary<string, TreeNode>(StringComparer.OrdinalIgnoreCase);
+                foreach (var customInst in customInsts)
+                {
+                    var customAsset = AssetLibrary.Get(customInst.AssetId) as CustomComponentAsset;
+                    string groupName = customAsset?.Category ?? "Custom Components";
+                    if (!groups.TryGetValue(groupName, out var group))
+                    {
+                        group = CreateGroupNode(groupName);
+                        groups[groupName] = group;
+                    }
+
+                    string specs = customAsset != null
+                        ? $"{customAsset.WidthMm:0}x{customAsset.HeightMm:0}mm | {customAsset.SignalType}"
+                        : "--";
+                    float weight = customAsset?.MassKg > 0 ? customAsset.MassKg : 0f;
+                    AddComponentNode(group, customAsset?.Name ?? "Custom Component", customInst, specs, WeightText(weight), "--");
+                }
+
+                foreach (var kvp in groups.OrderBy(k => k.Key))
+                    projectTree.Nodes.Add(kvp.Value);
+            }
+
             if (payloadType != PayloadType.None && payloadMassKg > 0f)
             {
                 var payloadGroup = CreateGroupNode("Payload");
@@ -3463,100 +3866,298 @@ float lastError = 0;
 
         // ================= VIEWPORT =================
         void DrawViewport(object? s, PaintEventArgs e)
-{
-    var g = e.Graphics;
-    g.SmoothingMode = SmoothingMode.AntiAlias;
-    var palette = CurrentPalette;
-
-    using (var bg = new LinearGradientBrush(viewport.ClientRectangle, palette.ViewportBackground, palette.SurfaceAlt, LinearGradientMode.Vertical))
-        g.FillRectangle(bg, viewport.ClientRectangle);
-
-    using (var borderPen = new Pen(Color.FromArgb(120, palette.Border)))
-        g.DrawRectangle(borderPen, 0, 0, Math.Max(0, viewport.Width - 1), Math.Max(0, viewport.Height - 1));
-
-    if (project == null)
-    {
-        DrawViewportOverlays(g);
-        return;
-    }
-
-    var frame = GetFrame();
-    if (frame != null)
-        DrawFrame(g, frame);
-
-    if (frame != null)
-    {
-        DrawMissionWaypoints(g, frame);
-        DrawPayloadOverlay(g, frame);
-    }
-
-        foreach (var p in project.Instances)
         {
-            if (p.Type == PartType.Motor)
-                DrawMotor(g, p);
-            if (p.Type == PartType.Battery)
-                DrawBattery(g, p);
-            if (p.Type == PartType.ESC)
-                DrawEsc(g, p);
-            if (p.Type == PartType.Propeller)
-                DrawPropeller(g, p);
-            if (p.Type == PartType.FlightController)
-                DrawFlightController(g, p);
-            if (p.Type == PartType.Camera)
-                DrawCamera(g, p);
-            if (p.Type == PartType.Receiver)
-                DrawReceiver(g, p);
-            if (p.Type == PartType.GPS)
-                DrawGps(g, p);
-            if (p.Type == PartType.VTX)
-                DrawVtx(g, p);
-            if (p.Type == PartType.Antenna)
-                DrawAntenna(g, p);
-            if (p.Type == PartType.Buzzer)
-                DrawBuzzer(g, p);
-            if (p.Type == PartType.LED)
-                DrawLed(g, p);
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            var palette = CurrentPalette;
+
+            using (var bg = new LinearGradientBrush(viewport.ClientRectangle, palette.ViewportBackground, palette.SurfaceAlt, LinearGradientMode.Vertical))
+                g.FillRectangle(bg, viewport.ClientRectangle);
+            
+            var state = g.Save();
+            g.TranslateTransform(viewOffset.X, viewOffset.Y);
+            g.ScaleTransform(zoomFactor, zoomFactor);
+
+            if (viewportIs3D)
+                DrawGrid3D(g);
+            else
+                DrawGrid(g);
+
+            if (project != null)
+            {
+                if (viewportIs3D)
+                    DrawScene3D(g);
+                else
+                    DrawScene2D(g);
+            }
+
+            g.Restore(state);
+
+            DrawPendingAddHint(g);
+            DrawViewportOverlays(g);
+            DrawViewportBorder(g);
         }
 
-    // show pending add hint
-    if (pendingAddMode != null)
-    {
-        string hint = pendingAddMode switch
+        void DrawScene2D(Graphics g)
         {
-            PartType.Motor => pendingAddName ?? "Motor",
-            PartType.Battery => pendingAddName ?? "Battery",
-            PartType.ESC => pendingAddName ?? "ESC",
-            PartType.FlightController => pendingAddName ?? "Flight Controller",
-            PartType.Propeller => pendingAddName ?? "Propeller",
-            PartType.Camera => pendingAddName ?? "Camera",
-            PartType.Receiver => pendingAddName ?? "Receiver",
-            PartType.GPS => pendingAddName ?? "GPS",
-            PartType.VTX => pendingAddName ?? "VTX",
-            PartType.Antenna => pendingAddName ?? "Antenna",
-            PartType.Buzzer => pendingAddName ?? "Buzzer",
-            PartType.LED => pendingAddName ?? "LED",
-            _ => pendingAddName ?? "Part"
-        };
-        var txt = $"Click to place {hint}";
-        var size = g.MeasureString(txt, Font);
-        var pos = new PointF(mousePos.X + 12, mousePos.Y + 12);
-        var hintRect = new RectangleF(pos.X - 8, pos.Y - 4, size.Width + 16, size.Height + 8);
-        using var hintPath = BuildRoundedPath(hintRect, 8f);
-        using var b = new SolidBrush(Color.FromArgb(224, palette.Surface));
-        using var p = new Pen(palette.Border);
-        using var t = new SolidBrush(palette.TextPrimary);
-        g.FillPath(b, hintPath);
-        g.DrawPath(p, hintPath);
-        g.DrawString(txt, Font, t, pos);
+            var frame = GetFrame();
+            if (frame != null)
+                DrawFrame(g, frame);
+
+            if (frame != null)
+            {
+                DrawMissionWaypoints(g, frame);
+                DrawPayloadOverlay(g, frame);
+            }
+
+            foreach (var p in project!.Instances)
+            {
+                if (p.Type == PartType.Motor)
+                    DrawMotor(g, p);
+                if (p.Type == PartType.Battery)
+                    DrawBattery(g, p);
+                if (p.Type == PartType.ESC)
+                    DrawEsc(g, p);
+                if (p.Type == PartType.Propeller)
+                    DrawPropeller(g, p);
+                if (p.Type == PartType.FlightController)
+                    DrawFlightController(g, p);
+                if (p.Type == PartType.Camera)
+                    DrawCamera(g, p);
+                if (p.Type == PartType.Receiver)
+                    DrawReceiver(g, p);
+                if (p.Type == PartType.GPS)
+                    DrawGps(g, p);
+                if (p.Type == PartType.VTX)
+                    DrawVtx(g, p);
+                if (p.Type == PartType.Antenna)
+                    DrawAntenna(g, p);
+                if (p.Type == PartType.Buzzer)
+                    DrawBuzzer(g, p);
+                if (p.Type == PartType.LED)
+                    DrawLed(g, p);
+                if (p.Type == PartType.CustomComponent)
+                    DrawCustomComponent(g, p);
+            }
+
+            if (frame != null)
+                DrawCgOverlay(g, frame);
+        }
+    
+    void DrawGrid(Graphics g)
+    {
+        var palette = CurrentPalette;
+        float gridSize = 50.0f * zoomFactor;
+        if (gridSize < 20) gridSize *= 5;
+    
+        int halfWidth = (int)(viewport.Width / (2 * zoomFactor));
+        int halfHeight = (int)(viewport.Height / (2 * zoomFactor));
+        
+        int startX = (int)(-viewOffset.X / zoomFactor - halfWidth);
+        int startY = (int)(-viewOffset.Y / zoomFactor - halfHeight);
+        int endX = (int)((viewport.Width - viewOffset.X) / zoomFactor + halfWidth);
+        int endY = (int)((viewport.Height - viewOffset.Y) / zoomFactor + halfHeight);
+    
+        startX = (int)(Math.Floor(startX / gridSize) * gridSize);
+        startY = (int)(Math.Floor(startY / gridSize) * gridSize);
+    
+        using var majorPen = new Pen(Color.FromArgb(50, palette.Border), 2.0f / zoomFactor);
+        using var minorPen = new Pen(Color.FromArgb(30, palette.Border), 1.0f / zoomFactor);
+    
+        for (float x = startX; x < endX; x += gridSize)
+        {
+            g.DrawLine(Math.Abs(x) < 0.01 ? majorPen : minorPen, x, startY, x, endY);
+        }
+        for (float y = startY; y < endY; y += gridSize)
+        {
+            g.DrawLine(Math.Abs(y) < 0.01 ? majorPen : minorPen, startX, y, endX, y);
+        }
     }
 
-    DrawViewportOverlays(g);
-}
+    void DrawGrid3D(Graphics g)
+    {
+        var palette = CurrentPalette;
+        float gridSize = 50f;
 
-void DrawFrame(Graphics g, PlacedInstance frame)
-{
-    var palette = CurrentPalette;
-    var frameAsset = GetFrameAsset();
+        var topLeft = ScreenToWorld(new Point(0, 0));
+        var bottomRight = ScreenToWorld(new Point(viewport.Width, viewport.Height));
+        float minX = Math.Min(topLeft.X, bottomRight.X) - 200f;
+        float maxX = Math.Max(topLeft.X, bottomRight.X) + 200f;
+        float minY = Math.Min(topLeft.Y, bottomRight.Y) - 200f;
+        float maxY = Math.Max(topLeft.Y, bottomRight.Y) + 200f;
+
+        minX = (float)Math.Floor(minX / gridSize) * gridSize;
+        minY = (float)Math.Floor(minY / gridSize) * gridSize;
+
+        using var majorPen = new Pen(Color.FromArgb(50, palette.Border), 2.0f / zoomFactor);
+        using var minorPen = new Pen(Color.FromArgb(30, palette.Border), 1.0f / zoomFactor);
+
+        for (float x = minX; x <= maxX; x += gridSize)
+        {
+            var a = IsoProject(new PointF(x, minY), 0f);
+            var b = IsoProject(new PointF(x, maxY), 0f);
+            g.DrawLine(Math.Abs(x) < 0.01 ? majorPen : minorPen, a, b);
+        }
+
+        for (float y = minY; y <= maxY; y += gridSize)
+        {
+            var a = IsoProject(new PointF(minX, y), 0f);
+            var b = IsoProject(new PointF(maxX, y), 0f);
+            g.DrawLine(Math.Abs(y) < 0.01 ? majorPen : minorPen, a, b);
+        }
+    }
+
+    PointF ApplyViewRotation(PointF point, float degrees)
+    {
+        float rad = degrees * (MathF.PI / 180f);
+        float cos = MathF.Cos(rad);
+        float sin = MathF.Sin(rad);
+        return new PointF(point.X * cos - point.Y * sin, point.X * sin + point.Y * cos);
+    }
+
+    PointF IsoProject(PointF point, float z)
+    {
+        var rotated = ApplyViewRotation(point, viewRotation);
+        float isoX = 0.866f;
+        float isoY = 0.5f;
+        return new PointF(
+            (rotated.X - rotated.Y) * isoX,
+            (rotated.X + rotated.Y) * isoY - z
+        );
+    }
+
+    void DrawScene3D(Graphics g)
+    {
+        var frame = GetFrame();
+        if (frame != null)
+            DrawFrame3D(g, frame);
+
+        var parts = project!.Instances
+            .Where(p => p.Type != PartType.Frame)
+            .OrderBy(p =>
+            {
+                var pos = GetPartWorldPosition(p);
+                var iso = IsoProject(pos, 0f);
+                return iso.Y;
+            })
+            .ToList();
+
+        foreach (var p in parts)
+        {
+            if (p.Type == PartType.Motor) DrawMotor3D(g, p);
+            else if (p.Type == PartType.Propeller) DrawPropeller3D(g, p);
+            else if (p.Type == PartType.Battery) DrawBattery3D(g, p);
+            else if (p.Type == PartType.ESC) DrawEsc3D(g, p);
+            else if (p.Type == PartType.FlightController) DrawFlightController3D(g, p);
+            else if (p.Type == PartType.Camera) DrawCamera3D(g, p);
+            else if (p.Type == PartType.Receiver) DrawReceiver3D(g, p);
+            else if (p.Type == PartType.GPS) DrawGps3D(g, p);
+            else if (p.Type == PartType.VTX) DrawVtx3D(g, p);
+            else if (p.Type == PartType.Antenna) DrawAntenna3D(g, p);
+            else if (p.Type == PartType.Buzzer) DrawBuzzer3D(g, p);
+            else if (p.Type == PartType.LED) DrawLed3D(g, p);
+            else if (p.Type == PartType.CustomComponent) DrawCustomComponent3D(g, p);
+        }
+
+        if (frame != null)
+            DrawCgOverlay3D(g, frame);
+    }
+
+    void DrawFrame3D(Graphics g, PlacedInstance frame)
+    {
+        var palette = CurrentPalette;
+        var frameAsset = GetFrameAsset();
+        var mounts = GetMotorMounts(frameAsset);
+        if (mounts.Count < 3) return;
+
+        var center = frame.Position;
+        var polygon = mounts
+            .Select(m => new PointF(center.X + m.Mount.Position.X, center.Y + m.Mount.Position.Y))
+            .OrderBy(p => MathF.Atan2(p.Y - center.Y, p.X - center.X))
+            .ToArray();
+
+        DrawExtrudedPolygonIso(
+            g,
+            polygon,
+            6f,
+            Color.FromArgb(150, palette.SurfaceAlt),
+            Color.FromArgb(120, palette.Border),
+            palette.Border
+        );
+    }
+
+    void DrawExtrudedRectIso(Graphics g, RectangleF rect, float height, Color topColor, Color sideColor, Color edgeColor)
+    {
+        var points = new[]
+        {
+            new PointF(rect.Left, rect.Top),
+            new PointF(rect.Right, rect.Top),
+            new PointF(rect.Right, rect.Bottom),
+            new PointF(rect.Left, rect.Bottom)
+        };
+        DrawExtrudedPolygonIso(g, points, height, topColor, sideColor, edgeColor);
+    }
+
+    void DrawExtrudedPolygonIso(Graphics g, PointF[] polygon, float height, Color topColor, Color sideColor, Color edgeColor)
+    {
+        var bottom = polygon.Select(p => IsoProject(p, 0f)).ToArray();
+        var top = polygon.Select(p => IsoProject(p, height)).ToArray();
+
+        var faces = new List<(PointF[] Points, float Depth)>();
+        for (int i = 0; i < polygon.Length; i++)
+        {
+            int next = (i + 1) % polygon.Length;
+            var face = new[] { bottom[i], bottom[next], top[next], top[i] };
+            float depth = face.Average(p => p.Y);
+            faces.Add((face, depth));
+        }
+
+        foreach (var face in faces.OrderBy(f => f.Depth))
+        {
+            using var brush = new SolidBrush(Color.FromArgb(150, sideColor));
+            g.FillPolygon(brush, face.Points);
+            using var pen = new Pen(Color.FromArgb(160, edgeColor), 1f);
+            g.DrawPolygon(pen, face.Points);
+        }
+
+        using (var topBrush = new SolidBrush(topColor))
+            g.FillPolygon(topBrush, top);
+        using (var topPen = new Pen(edgeColor, 1f))
+            g.DrawPolygon(topPen, top);
+    }
+
+    void DrawExtrudedCircleIso(Graphics g, PointF center, float radius, float height, Color topColor, Color sideColor, Color edgeColor)
+    {
+        const int segments = 20;
+        var bottom = new PointF[segments];
+        var top = new PointF[segments];
+        for (int i = 0; i < segments; i++)
+        {
+            float angle = i * MathF.PI * 2f / segments;
+            var p = new PointF(center.X + MathF.Cos(angle) * radius, center.Y + MathF.Sin(angle) * radius);
+            bottom[i] = IsoProject(p, 0f);
+            top[i] = IsoProject(p, height);
+        }
+
+        for (int i = 0; i < segments; i++)
+        {
+            int next = (i + 1) % segments;
+            var face = new[] { bottom[i], bottom[next], top[next], top[i] };
+            using var brush = new SolidBrush(Color.FromArgb(120, sideColor));
+            g.FillPolygon(brush, face);
+            using var pen = new Pen(Color.FromArgb(140, edgeColor), 1f);
+            g.DrawPolygon(pen, face);
+        }
+
+        using (var topBrush = new SolidBrush(topColor))
+            g.FillPolygon(topBrush, top);
+        using (var topPen = new Pen(edgeColor, 1f))
+            g.DrawPolygon(topPen, top);
+    }
+    
+    void DrawFrame(Graphics g, PlacedInstance frame)
+    {
+        var palette = CurrentPalette;    var frameAsset = GetFrameAsset();
     var mounts = GetMotorMounts(frameAsset);
     var center = frame.Position;
     float armThickness = frameAsset?.ArmThicknessMm > 0 ? frameAsset.ArmThicknessMm : 4f;
@@ -3568,9 +4169,11 @@ void DrawFrame(Graphics g, PlacedInstance frame)
         EndCap = LineCap.Round,
         LineJoin = LineJoin.Round
     };
+    float shadowAlpha = 55f;
     foreach (var (mount, _) in mounts)
     {
         var world = FrameToWorld(mount.Position);
+        DrawShadowLine(g, center, world, ViewportDepth, armPixels, (int)shadowAlpha);
         g.DrawLine(armPen, center, world);
     }
 
@@ -3584,15 +4187,48 @@ void DrawFrame(Graphics g, PlacedInstance frame)
         g.DrawPolygon(outlinePen, ordered.ToArray());
     }
 
+    var style = frameAsset?.Style ?? "X";
+    bool wingStyle = style.Equals("FixedWing", StringComparison.OrdinalIgnoreCase)
+        || style.Equals("VTOL", StringComparison.OrdinalIgnoreCase)
+        || style.Equals("TiltRotor", StringComparison.OrdinalIgnoreCase);
+    if (wingStyle)
+    {
+        float wingSpan = Math.Max(120f, mounts.Count > 0 ? mounts.Max(m => MathF.Abs(m.Mount.Position.X)) * 2.1f : 220f);
+        float wingChord = Math.Max(18f, wingSpan * 0.08f);
+        var wingRect = new RectangleF(center.X - wingSpan / 2f, center.Y - wingChord / 2f, wingSpan, wingChord);
+        using var wingPath = BuildRoundedPath(wingRect, 8f);
+        DrawShadowPath(g, wingPath, ViewportDepth, 40);
+        using var wingBrush = new SolidBrush(Color.FromArgb(120, palette.SurfaceAlt));
+        using var wingPen = new Pen(Color.FromArgb(150, palette.Border), 1.1f);
+        g.FillPath(wingBrush, wingPath);
+        g.DrawPath(wingPen, wingPath);
+    }
+
     float bodySize = frameAsset?.BodySizeMm > 0 ? frameAsset.BodySizeMm : 48f;
     float bodyW = bodySize;
     float bodyH = Math.Max(28f, bodySize * 0.7f);
     var plate = new RectangleF(center.X - bodyW / 2f, center.Y - bodyH / 2f, bodyW, bodyH);
     using var platePath = BuildRoundedPath(plate, 10f);
+    DrawShadowPath(g, platePath, ViewportDepth, 45);
     using var plateBrush = new SolidBrush(Color.FromArgb(140, palette.SurfaceAlt));
     using var platePen = new Pen(palette.Border, 1.2f);
     g.FillPath(plateBrush, platePath);
     g.DrawPath(platePen, platePath);
+
+    // Draw direction indicator
+    using var directionBrush = new SolidBrush(palette.Accent);
+    var arrowPoints = new PointF[]
+    {
+        new PointF(0, -15),
+        new PointF(-7, 10),
+        new PointF(7, 10)
+    };
+
+    var transform = new Matrix();
+    transform.Rotate(viewRotation);
+    transform.Translate(center.X, center.Y, MatrixOrder.Append);
+    transform.TransformPoints(arrowPoints);
+    g.FillPolygon(directionBrush, arrowPoints);
 
     var fcMount = frameAsset?.Mounts.FirstOrDefault(m => m.Type == MountType.FlightController);
     if (fcMount != null && fcMount.Size.Width > 1f)
@@ -3633,6 +4269,13 @@ void DrawFrame(Graphics g, PlacedInstance frame)
         using var mountPen = new Pen(palette.Border, 1.4f);
         g.FillEllipse(mountBrush, world.X - 10, world.Y - 10, 20, 20);
         g.DrawEllipse(mountPen, world.X - 10, world.Y - 10, 20, 20);
+
+        if (frameAsset?.Ducted == true)
+        {
+            float ductRadius = Math.Max(18f, mount.Size.Width * 0.9f);
+            using var ductPen = new Pen(Color.FromArgb(170, palette.Accent), 2.2f);
+            g.DrawEllipse(ductPen, world.X - ductRadius, world.Y - ductRadius, ductRadius * 2f, ductRadius * 2f);
+        }
 
         // highlight candidate
         if (index == nearest)
@@ -3690,6 +4333,7 @@ void DrawMotor(Graphics g, PlacedInstance motor)
     var outer = new RectangleF(pos.X - 13, pos.Y - 13, 26, 26);
     var inner = new RectangleF(pos.X - 9, pos.Y - 9, 18, 18);
 
+    DrawShadowEllipse(g, outer, ViewportDepth, 55);
     using var outerBrush = new SolidBrush(Color.FromArgb(220, 98, 122, 160));
     using var outerPen = new Pen(palette.Border);
     using var innerBrush = new SolidBrush(palette.Accent);
@@ -3714,6 +4358,7 @@ void DrawBattery(Graphics g, PlacedInstance battery)
         36
     );
 
+    DrawShadowRect(g, rect, 10f, ViewportDepth, 55);
     using var bodyPath = BuildRoundedPath(rect, 10f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(198, 90, 132, 255));
     using var bodyPen = new Pen(palette.Border, 1.3f);
@@ -3753,6 +4398,7 @@ void DrawEsc(Graphics g, PlacedInstance esc)
     float w = (escMount != null && escMount.Size.Width > 1f) ? escMount.Size.Width : 32f;
     float h = (escMount != null && escMount.Size.Height > 1f) ? escMount.Size.Height : 20f;
     var rect = new RectangleF(pos.X - w / 2f, pos.Y - h / 2f, w, h);
+    DrawShadowRect(g, rect, 6f, ViewportDepth, 50);
     using var bodyPath = BuildRoundedPath(rect, 6f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(190, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3770,8 +4416,28 @@ void DrawPropeller(Graphics g, PlacedInstance prop)
     var pos = new PointF(frame.Position.X + mount.X, frame.Position.Y + mount.Y);
     using var ringPen = new Pen(Color.FromArgb(150, palette.TextMuted), 1.4f);
     g.DrawEllipse(ringPen, pos.X - 18, pos.Y - 18, 36, 36);
+    var propAsset = AssetLibrary.Get(prop.AssetId) as PropellerAsset;
+    int blades = propAsset?.BladeCount > 0 ? propAsset.BladeCount : 2;
+    DrawPropellerBlades(g, pos, blades, 16f, Color.FromArgb(150, palette.TextMuted));
     using var hubBrush = new SolidBrush(Color.FromArgb(180, palette.SurfaceAlt));
     g.FillEllipse(hubBrush, pos.X - 4, pos.Y - 4, 8, 8);
+}
+
+void DrawPropellerBlades(Graphics g, PointF center, int blades, float radius, Color color)
+{
+    if (blades <= 0) return;
+    float spread = MathF.PI / (blades * 1.6f);
+    float rotation = viewRotation * MathF.PI / 180f;
+    using var brush = new SolidBrush(color);
+
+    for (int i = 0; i < blades; i++)
+    {
+        float angle = rotation + i * MathF.PI * 2f / blades;
+        var tip1 = new PointF(center.X + MathF.Cos(angle - spread) * radius, center.Y + MathF.Sin(angle - spread) * radius);
+        var tip2 = new PointF(center.X + MathF.Cos(angle + spread) * radius, center.Y + MathF.Sin(angle + spread) * radius);
+        var root = new PointF(center.X + MathF.Cos(angle) * radius * 0.35f, center.Y + MathF.Sin(angle) * radius * 0.35f);
+        g.FillPolygon(brush, new[] { root, tip1, tip2 });
+    }
 }
 
 void DrawFlightController(Graphics g, PlacedInstance fc)
@@ -3786,6 +4452,7 @@ void DrawFlightController(Graphics g, PlacedInstance fc)
             size = Math.Min(mount.Size.Width, mount.Size.Height);
     }
     var rect = new RectangleF(fc.Position.X - size / 2f, fc.Position.Y - size / 2f, size, size);
+    DrawShadowRect(g, rect, 6f, ViewportDepth, 50);
     using var bodyPath = BuildRoundedPath(rect, 6f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(200, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3801,6 +4468,7 @@ void DrawCamera(Graphics g, PlacedInstance cam)
 {
     var palette = CurrentPalette;
     var rect = new RectangleF(cam.Position.X - 14, cam.Position.Y - 10, 28, 20);
+    DrawShadowRect(g, rect, 5f, ViewportDepth, 50);
     using var bodyPath = BuildRoundedPath(rect, 5f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(200, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3815,6 +4483,7 @@ void DrawReceiver(Graphics g, PlacedInstance rx)
 {
     var palette = CurrentPalette;
     var rect = new RectangleF(rx.Position.X - 12, rx.Position.Y - 8, 24, 16);
+    DrawShadowRect(g, rect, 4f, ViewportDepth, 50);
     using var bodyPath = BuildRoundedPath(rect, 4f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(200, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3828,6 +4497,7 @@ void DrawGps(Graphics g, PlacedInstance gps)
 {
     var palette = CurrentPalette;
     var rect = new RectangleF(gps.Position.X - 12, gps.Position.Y - 12, 24, 24);
+    DrawShadowRect(g, rect, 6f, ViewportDepth, 50);
     using var bodyPath = BuildRoundedPath(rect, 6f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(200, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3841,6 +4511,7 @@ void DrawVtx(Graphics g, PlacedInstance vtx)
 {
     var palette = CurrentPalette;
     var rect = new RectangleF(vtx.Position.X - 13, vtx.Position.Y - 9, 26, 18);
+    DrawShadowRect(g, rect, 4f, ViewportDepth, 50);
     using var bodyPath = BuildRoundedPath(rect, 4f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(200, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3853,6 +4524,8 @@ void DrawVtx(Graphics g, PlacedInstance vtx)
 void DrawAntenna(Graphics g, PlacedInstance antenna)
 {
     var palette = CurrentPalette;
+    DrawShadowLine(g, new PointF(antenna.Position.X, antenna.Position.Y - 8), new PointF(antenna.Position.X, antenna.Position.Y + 8), ViewportDepth, 1.6f, 40);
+    DrawShadowEllipse(g, new RectangleF(antenna.Position.X - 3, antenna.Position.Y - 10, 6, 6), ViewportDepth, 40);
     using var pen = new Pen(Color.FromArgb(200, palette.TextMuted), 1.6f);
     g.DrawLine(pen, antenna.Position.X, antenna.Position.Y - 8, antenna.Position.X, antenna.Position.Y + 8);
     g.DrawEllipse(pen, antenna.Position.X - 3, antenna.Position.Y - 10, 6, 6);
@@ -3862,6 +4535,7 @@ void DrawBuzzer(Graphics g, PlacedInstance buzzer)
 {
     var palette = CurrentPalette;
     var rect = new RectangleF(buzzer.Position.X - 9, buzzer.Position.Y - 6, 18, 12);
+    DrawShadowRect(g, rect, 3f, ViewportDepth, 45);
     using var bodyPath = BuildRoundedPath(rect, 3f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(210, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3875,6 +4549,7 @@ void DrawLed(Graphics g, PlacedInstance led)
 {
     var palette = CurrentPalette;
     var rect = new RectangleF(led.Position.X - 12, led.Position.Y - 4, 24, 8);
+    DrawShadowRect(g, rect, 3f, ViewportDepth, 45);
     using var bodyPath = BuildRoundedPath(rect, 3f);
     using var bodyBrush = new SolidBrush(Color.FromArgb(190, palette.SurfaceAlt));
     using var bodyPen = new Pen(palette.Border, 1.1f);
@@ -3882,6 +4557,248 @@ void DrawLed(Graphics g, PlacedInstance led)
     g.DrawPath(bodyPen, bodyPath);
     using var glow = new SolidBrush(Color.FromArgb(200, 72, 140, 255));
     g.FillEllipse(glow, rect.X + 4, rect.Y + 2, 4, 4);
+}
+
+void DrawCustomComponent(Graphics g, PlacedInstance customInst)
+{
+    var palette = CurrentPalette;
+    var asset = AssetLibrary.Get(customInst.AssetId) as CustomComponentAsset;
+
+    float widthMm = asset?.WidthMm > 0 ? asset.WidthMm : 26f;
+    float heightMm = asset?.HeightMm > 0 ? asset.HeightMm : 18f;
+    float mmToPx = 0.6f;
+    float width = Math.Clamp(widthMm * mmToPx, 14f, 140f);
+    float height = Math.Clamp(heightMm * mmToPx, 10f, 120f);
+
+    var rect = new RectangleF(
+        customInst.Position.X - width / 2f,
+        customInst.Position.Y - height / 2f,
+        width,
+        height);
+
+    var imagePath = asset != null ? ResolveAssetImagePath(asset) : null;
+    var image = !string.IsNullOrWhiteSpace(imagePath) ? GetCachedCustomImage(imagePath) : null;
+
+    var state = g.Save();
+    float rotation = asset?.RotationDeg ?? 0f;
+    if (Math.Abs(rotation) > 0.1f)
+    {
+        g.TranslateTransform(customInst.Position.X, customInst.Position.Y);
+        g.RotateTransform(rotation);
+        g.TranslateTransform(-customInst.Position.X, -customInst.Position.Y);
+    }
+
+    if (image != null)
+    {
+        DrawShadowRect(g, rect, 6f, ViewportDepth, 55);
+        g.DrawImage(image, rect);
+        using var imgBorder = new Pen(palette.Border, 1f);
+        g.DrawRectangle(imgBorder, rect.X, rect.Y, rect.Width, rect.Height);
+    }
+    else
+    {
+        var fillColor = asset?.FillColor ?? Color.FromArgb(200, palette.Accent);
+        var strokeColor = asset?.StrokeColor ?? palette.Border;
+        float opacity = asset?.Opacity ?? 1f;
+        int fillAlpha = (int)Math.Clamp(fillColor.A * opacity, 0, 255);
+        int strokeAlpha = (int)Math.Clamp(strokeColor.A * opacity, 0, 255);
+        using var fill = new SolidBrush(Color.FromArgb(fillAlpha, fillColor));
+        using var stroke = new Pen(Color.FromArgb(strokeAlpha, strokeColor), asset?.StrokeWidth > 0 ? asset.StrokeWidth : 1.2f);
+
+        var shape = asset?.Shape ?? CustomShape.RoundedRect;
+        using var path = BuildCustomShapePath(shape, rect, asset?.CornerRadius ?? 6);
+        DrawShadowPath(g, path, ViewportDepth, 55);
+        g.FillPath(fill, path);
+        g.DrawPath(stroke, path);
+    }
+
+    if (selected == customInst)
+    {
+        using var selectedPen = new Pen(palette.Accent, 2f);
+        g.DrawRectangle(selectedPen, rect.X - 4, rect.Y - 4, rect.Width + 8, rect.Height + 8);
+    }
+
+    g.Restore(state);
+}
+
+RectangleF RectFromCenter(PointF center, float width, float height)
+{
+    return new RectangleF(center.X - width / 2f, center.Y - height / 2f, width, height);
+}
+
+void DrawMotor3D(Graphics g, PlacedInstance motor)
+{
+    var frame = GetFrame();
+    if (frame == null) return;
+    if (!TryGetMotorMountPosition(motor.MountIndex, out var mount)) return;
+    var pos = new PointF(frame.Position.X + mount.X, frame.Position.Y + mount.Y);
+    var palette = CurrentPalette;
+    DrawExtrudedCircleIso(g, pos, 13f, 6f, Color.FromArgb(210, palette.Accent), Color.FromArgb(120, palette.Border), palette.Border);
+}
+
+void DrawPropeller3D(Graphics g, PlacedInstance prop)
+{
+    var frame = GetFrame();
+    if (frame == null) return;
+    if (!TryGetMotorMountPosition(prop.MountIndex, out var mount)) return;
+    var pos = new PointF(frame.Position.X + mount.X, frame.Position.Y + mount.Y);
+    var palette = CurrentPalette;
+    DrawExtrudedCircleIso(g, pos, 18f, 2.5f, Color.FromArgb(90, palette.SurfaceAlt), Color.FromArgb(80, palette.Border), palette.Border);
+
+    var propAsset = AssetLibrary.Get(prop.AssetId) as PropellerAsset;
+    int blades = propAsset?.BladeCount > 0 ? propAsset.BladeCount : 2;
+    DrawPropellerBladesIso(g, pos, blades, 16f, 3f, Color.FromArgb(160, palette.TextMuted));
+}
+
+void DrawBattery3D(Graphics g, PlacedInstance battery)
+{
+    var palette = CurrentPalette;
+    var rect = RectFromCenter(battery.Position, 68f, 36f);
+    DrawExtrudedRectIso(g, rect, 10f, Color.FromArgb(200, 90, 132, 255), Color.FromArgb(120, palette.Border), palette.Border);
+}
+
+void DrawEsc3D(Graphics g, PlacedInstance esc)
+{
+    var frame = GetFrame();
+    if (frame == null) return;
+    if (!TryGetEscMountPosition(esc.MountIndex, out var mount)) return;
+    var pos = new PointF(frame.Position.X + mount.X, frame.Position.Y + mount.Y);
+    MountPoint? escMount = null;
+    var escMounts = GetEscMounts(GetFrameAsset());
+    for (int i = 0; i < escMounts.Count; i++)
+    {
+        if (escMounts[i].Index == esc.MountIndex)
+        {
+            escMount = escMounts[i].Mount;
+            break;
+        }
+    }
+    float w = (escMount != null && escMount.Size.Width > 1f) ? escMount.Size.Width : 32f;
+    float h = (escMount != null && escMount.Size.Height > 1f) ? escMount.Size.Height : 20f;
+    var rect = RectFromCenter(pos, w, h);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 5f, Color.FromArgb(180, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawFlightController3D(Graphics g, PlacedInstance fc)
+{
+    var frameAsset = GetFrameAsset();
+    float size = 32f;
+    if (frameAsset != null)
+    {
+        var mount = frameAsset.Mounts.FirstOrDefault(m => m.Type == MountType.FlightController);
+        if (mount != null && mount.Size.Width > 1f)
+            size = Math.Min(mount.Size.Width, mount.Size.Height);
+    }
+    var rect = RectFromCenter(fc.Position, size, size);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 6f, Color.FromArgb(190, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawCamera3D(Graphics g, PlacedInstance cam)
+{
+    var rect = RectFromCenter(cam.Position, 28f, 20f);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 10f, Color.FromArgb(190, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawReceiver3D(Graphics g, PlacedInstance rx)
+{
+    var rect = RectFromCenter(rx.Position, 24f, 16f);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 5f, Color.FromArgb(190, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawGps3D(Graphics g, PlacedInstance gps)
+{
+    var rect = RectFromCenter(gps.Position, 24f, 24f);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 6f, Color.FromArgb(190, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawVtx3D(Graphics g, PlacedInstance vtx)
+{
+    var rect = RectFromCenter(vtx.Position, 26f, 18f);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 5f, Color.FromArgb(190, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawAntenna3D(Graphics g, PlacedInstance antenna)
+{
+    var palette = CurrentPalette;
+    var basePos = IsoProject(new PointF(antenna.Position.X, antenna.Position.Y), 0f);
+    var tipPos = IsoProject(new PointF(antenna.Position.X, antenna.Position.Y), 14f);
+    using var pen = new Pen(Color.FromArgb(180, palette.TextMuted), 1.5f);
+    g.DrawLine(pen, basePos, tipPos);
+}
+
+void DrawBuzzer3D(Graphics g, PlacedInstance buzzer)
+{
+    var rect = RectFromCenter(buzzer.Position, 18f, 12f);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 5f, Color.FromArgb(190, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawLed3D(Graphics g, PlacedInstance led)
+{
+    var rect = RectFromCenter(led.Position, 24f, 8f);
+    var palette = CurrentPalette;
+    DrawExtrudedRectIso(g, rect, 4f, Color.FromArgb(170, palette.SurfaceAlt), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawCustomComponent3D(Graphics g, PlacedInstance customInst)
+{
+    var asset = AssetLibrary.Get(customInst.AssetId) as CustomComponentAsset;
+    float widthMm = asset?.WidthMm > 0 ? asset.WidthMm : 26f;
+    float heightMm = asset?.HeightMm > 0 ? asset.HeightMm : 18f;
+    float depthMm = asset?.DepthMm > 0 ? asset.DepthMm : 8f;
+    float mmToPx = 0.6f;
+    float width = Math.Clamp(widthMm * mmToPx, 14f, 140f);
+    float height = Math.Clamp(heightMm * mmToPx, 10f, 120f);
+    float depth = Math.Clamp(depthMm * mmToPx, 2f, 40f);
+    var rect = RectFromCenter(customInst.Position, width, height);
+    var palette = CurrentPalette;
+    var top = asset?.FillColor ?? palette.AccentSoft;
+    DrawExtrudedRectIso(g, rect, depth, Color.FromArgb(200, top), Color.FromArgb(110, palette.Border), palette.Border);
+}
+
+void DrawCgOverlay3D(Graphics g, PlacedInstance frame)
+{
+    var palette = CurrentPalette;
+    float cgOffsetXcm = featureProfile.CgOffsetXcm + payloadOffsetCm;
+    float cgOffsetYcm = featureProfile.CgOffsetYcm;
+    const float cmToUnits = 2.4f;
+
+    var center = frame.Position;
+    var cgPos = new PointF(center.X + cgOffsetXcm * cmToUnits, center.Y + cgOffsetYcm * cmToUnits);
+
+    var centerIso = IsoProject(center, 10f);
+    var cgIso = IsoProject(cgPos, 10f);
+
+    using var linePen = new Pen(Color.FromArgb(140, palette.Accent), 1.2f) { DashStyle = DashStyle.Dash };
+    g.DrawLine(linePen, centerIso, cgIso);
+    using var centerBrush = new SolidBrush(Color.FromArgb(220, palette.Accent));
+    using var cgBrush = new SolidBrush(Color.FromArgb(220, palette.Success));
+    g.FillEllipse(centerBrush, centerIso.X - 3, centerIso.Y - 3, 6, 6);
+    g.FillEllipse(cgBrush, cgIso.X - 3, cgIso.Y - 3, 6, 6);
+}
+
+void DrawPropellerBladesIso(Graphics g, PointF center, int blades, float radius, float z, Color color)
+{
+    if (blades <= 0) return;
+    float spread = MathF.PI / (blades * 1.6f);
+    float rotation = viewRotation * MathF.PI / 180f;
+    using var brush = new SolidBrush(color);
+
+    for (int i = 0; i < blades; i++)
+    {
+        float angle = rotation + i * MathF.PI * 2f / blades;
+        var tip1 = new PointF(center.X + MathF.Cos(angle - spread) * radius, center.Y + MathF.Sin(angle - spread) * radius);
+        var tip2 = new PointF(center.X + MathF.Cos(angle + spread) * radius, center.Y + MathF.Sin(angle + spread) * radius);
+        var root = new PointF(center.X + MathF.Cos(angle) * radius * 0.35f, center.Y + MathF.Sin(angle) * radius * 0.35f);
+        var pts = new[] { IsoProject(root, z), IsoProject(tip1, z), IsoProject(tip2, z) };
+        g.FillPolygon(brush, pts);
+    }
 }
 
 void DrawMissionWaypoints(Graphics g, PlacedInstance frame)
@@ -3930,6 +4847,57 @@ void DrawPayloadOverlay(Graphics g, PlacedInstance frame)
     g.FillPath(fill, path);
     g.DrawPath(border, path);
     g.DrawString($"{payloadType}", Font, text, rect.X - 4, rect.Bottom + 3);
+}
+
+void DrawCgOverlay(Graphics g, PlacedInstance frame)
+{
+    var palette = CurrentPalette;
+    var frameAsset = GetFrameAsset();
+    float cgOffsetXcm = featureProfile.CgOffsetXcm + payloadOffsetCm;
+    float cgOffsetYcm = featureProfile.CgOffsetYcm;
+    const float cmToUnits = 2.4f;
+
+    var center = frame.Position;
+    var cgPos = new PointF(center.X + cgOffsetXcm * cmToUnits, center.Y + cgOffsetYcm * cmToUnits);
+
+    var mounts = GetMotorMounts(frameAsset);
+    float maxRadius = 0f;
+    for (int i = 0; i < mounts.Count; i++)
+    {
+        var pos = mounts[i].Mount.Position;
+        float dist = MathF.Sqrt(pos.X * pos.X + pos.Y * pos.Y);
+        if (dist > maxRadius) maxRadius = dist;
+    }
+    if (maxRadius <= 0f)
+        maxRadius = frameAsset?.BodySizeMm > 0 ? frameAsset.BodySizeMm * 0.6f : 80f;
+
+    float offsetDist = Distance(center, cgPos);
+    float offsetPct = maxRadius > 0f ? (offsetDist / maxRadius) * 100f : 0f;
+    bool imbalance = offsetPct > 5f;
+
+    using var linePen = new Pen(imbalance ? Color.FromArgb(196, 64, 64) : Color.FromArgb(160, palette.Accent), 1.4f)
+    {
+        DashStyle = DashStyle.Dash
+    };
+    if (offsetDist > 0.5f)
+        g.DrawLine(linePen, center, cgPos);
+
+    float dotSize = 6f;
+    using var centerBrush = new SolidBrush(Color.FromArgb(220, palette.Accent));
+    using var cgBrush = new SolidBrush(imbalance ? Color.FromArgb(220, 208, 92, 64) : Color.FromArgb(220, palette.Success));
+    g.FillEllipse(centerBrush, center.X - dotSize / 2f, center.Y - dotSize / 2f, dotSize, dotSize);
+    g.FillEllipse(cgBrush, cgPos.X - dotSize / 2f, cgPos.Y - dotSize / 2f, dotSize, dotSize);
+
+    using var textBrush = new SolidBrush(palette.TextPrimary);
+    using var labelFont = new Font(Font.FontFamily, 7.5f, FontStyle.Bold, GraphicsUnit.Point);
+    g.DrawString("Center", labelFont, textBrush, center.X + 6f, center.Y + 4f);
+    g.DrawString("CG", labelFont, textBrush, cgPos.X + 6f, cgPos.Y + 4f);
+
+    if (imbalance)
+    {
+        using var warnBrush = new SolidBrush(Color.FromArgb(196, 64, 64));
+        g.DrawString("CG imbalance detected", labelFont, warnBrush, cgPos.X + 10f, cgPos.Y - 16f);
+    }
 }
 
 void DrawTelemetryMiniCharts(Graphics g)
@@ -4093,6 +5061,78 @@ void DrawViewportOverlays(Graphics g)
     }
 }
 
+void DrawViewportBorder(Graphics g)
+{
+    var palette = CurrentPalette;
+    using var borderPen = new Pen(Color.FromArgb(120, palette.Border));
+    g.DrawRectangle(borderPen, 0, 0, Math.Max(0, viewport.Width - 1), Math.Max(0, viewport.Height - 1));
+}
+
+void DrawPendingAddHint(Graphics g)
+{
+    if (pendingAddMode == null) return;
+    var palette = CurrentPalette;
+    string hint = pendingAddMode switch
+    {
+        PartType.Motor => pendingAddName ?? "Motor",
+        PartType.Battery => pendingAddName ?? "Battery",
+        PartType.ESC => pendingAddName ?? "ESC",
+        PartType.FlightController => pendingAddName ?? "Flight Controller",
+        PartType.Propeller => pendingAddName ?? "Propeller",
+        PartType.Camera => pendingAddName ?? "Camera",
+        PartType.Receiver => pendingAddName ?? "Receiver",
+        PartType.GPS => pendingAddName ?? "GPS",
+        PartType.VTX => pendingAddName ?? "VTX",
+        PartType.Antenna => pendingAddName ?? "Antenna",
+        PartType.Buzzer => pendingAddName ?? "Buzzer",
+        PartType.LED => pendingAddName ?? "LED",
+        PartType.CustomComponent => pendingAddName ?? "Custom Component",
+        _ => pendingAddName ?? "Part"
+    };
+    var txt = $"Click to place {hint}";
+    var size = g.MeasureString(txt, Font);
+    var pos = new PointF(lastMouseScreen.X + 12, lastMouseScreen.Y + 12);
+    var hintRect = new RectangleF(pos.X - 8, pos.Y - 4, size.Width + 16, size.Height + 8);
+    using var hintPath = BuildRoundedPath(hintRect, 8f);
+    using var b = new SolidBrush(Color.FromArgb(224, palette.Surface));
+    using var p = new Pen(palette.Border);
+    using var t = new SolidBrush(palette.TextPrimary);
+    g.FillPath(b, hintPath);
+    g.DrawPath(p, hintPath);
+    g.DrawString(txt, Font, t, pos);
+}
+
+void DrawShadowPath(Graphics g, GraphicsPath path, float depth, int alpha)
+{
+    using var shadowPath = (GraphicsPath)path.Clone();
+    using var transform = new Matrix();
+    transform.Translate(depth, depth);
+    shadowPath.Transform(transform);
+    using var brush = new SolidBrush(Color.FromArgb(alpha, 0, 0, 0));
+    g.FillPath(brush, shadowPath);
+}
+
+void DrawShadowRect(Graphics g, RectangleF rect, float radius, float depth, int alpha)
+{
+    var shadowRect = new RectangleF(rect.X + depth, rect.Y + depth, rect.Width, rect.Height);
+    using var path = BuildRoundedPath(shadowRect, radius);
+    using var brush = new SolidBrush(Color.FromArgb(alpha, 0, 0, 0));
+    g.FillPath(brush, path);
+}
+
+void DrawShadowEllipse(Graphics g, RectangleF rect, float depth, int alpha)
+{
+    var shadowRect = new RectangleF(rect.X + depth, rect.Y + depth, rect.Width, rect.Height);
+    using var brush = new SolidBrush(Color.FromArgb(alpha, 0, 0, 0));
+    g.FillEllipse(brush, shadowRect);
+}
+
+void DrawShadowLine(Graphics g, PointF a, PointF b, float depth, float width, int alpha)
+{
+    using var pen = new Pen(Color.FromArgb(alpha, 0, 0, 0), width);
+    g.DrawLine(pen, a.X + depth, a.Y + depth, b.X + depth, b.Y + depth);
+}
+
         GraphicsPath BuildRoundedPath(RectangleF rect, float radius)
         {
             var path = new GraphicsPath();
@@ -4111,6 +5151,114 @@ void DrawViewportOverlays(Graphics g)
             path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
             path.CloseFigure();
             return path;
+        }
+
+        GraphicsPath BuildCustomShapePath(CustomShape shape, RectangleF rect, float radius)
+        {
+            var path = new GraphicsPath();
+            switch (shape)
+            {
+                case CustomShape.Circle:
+                {
+                    float size = Math.Min(rect.Width, rect.Height);
+                    var circle = new RectangleF(
+                        rect.X + (rect.Width - size) / 2f,
+                        rect.Y + (rect.Height - size) / 2f,
+                        size,
+                        size);
+                    path.AddEllipse(circle);
+                    break;
+                }
+                case CustomShape.Triangle:
+                {
+                    var p1 = new PointF(rect.X + rect.Width / 2f, rect.Y);
+                    var p2 = new PointF(rect.Right, rect.Bottom);
+                    var p3 = new PointF(rect.X, rect.Bottom);
+                    path.AddPolygon(new[] { p1, p2, p3 });
+                    break;
+                }
+                case CustomShape.Capsule:
+                {
+                    float w = rect.Width;
+                    float h = rect.Height;
+                    if (w >= h)
+                    {
+                        float r = h / 2f;
+                        var left = new RectangleF(rect.X, rect.Y, h, h);
+                        var right = new RectangleF(rect.Right - h, rect.Y, h, h);
+                        path.AddArc(left, 90, 180);
+                        path.AddArc(right, 270, 180);
+                        path.CloseFigure();
+                    }
+                    else
+                    {
+                        float r = w / 2f;
+                        var top = new RectangleF(rect.X, rect.Y, w, w);
+                        var bottom = new RectangleF(rect.X, rect.Bottom - w, w, w);
+                        path.AddArc(top, 180, 180);
+                        path.AddArc(bottom, 0, 180);
+                        path.CloseFigure();
+                    }
+                    break;
+                }
+                case CustomShape.RoundedRect:
+                    return BuildRoundedPath(rect, Math.Max(1f, radius));
+                default:
+                    path.AddRectangle(rect);
+                    break;
+            }
+            return path;
+        }
+
+        string? ResolveAssetImagePath(Asset asset)
+        {
+            if (asset is not CustomComponentAsset custom || string.IsNullOrWhiteSpace(custom.ImagePath))
+                return null;
+
+            var path = custom.ImagePath.Trim();
+            if (Path.IsPathRooted(path))
+                return path;
+
+            if (AssetLibrary.Paths.TryGetValue(asset.Id, out var assetPath))
+            {
+                var dir = Path.GetDirectoryName(assetPath);
+                if (!string.IsNullOrWhiteSpace(dir))
+                    return Path.Combine(dir, path);
+            }
+
+            if (!string.IsNullOrWhiteSpace(AssetLibrary.CatalogBaseDir))
+            {
+                var candidate = Path.Combine(AssetLibrary.CatalogBaseDir, path);
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+
+            return path;
+        }
+
+        Image? GetCachedCustomImage(string path)
+        {
+            if (customImageCache.TryGetValue(path, out var cached))
+                return cached;
+
+            if (!File.Exists(path))
+                return null;
+
+            try
+            {
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using var ms = new MemoryStream();
+                fs.CopyTo(ms);
+                ms.Position = 0;
+                using var temp = Image.FromStream(ms);
+                var img = new Bitmap(temp);
+                customImageCache[path] = img;
+                return img;
+            }
+            catch
+            {
+                return null;
+            }
         }
 
 
@@ -4141,7 +5289,15 @@ void DrawViewportOverlays(Graphics g)
                 ("Antennas", "Antennas"),
                 ("Buzzers", "Buzzers"),
                 ("LEDs", "LEDs"),
-                ("Payload", "Payload")
+                ("Payload", "Payload"),
+                ("Landing Gear", "Landing Gear"),
+                ("Aerodynamic Add-ons", "Aero Add-ons"),
+                ("Telemetry", "Telemetry"),
+                ("Power Distribution", "Power Distribution"),
+                ("Safety", "Safety"),
+                ("Advanced", "Advanced / Research"),
+                ("Industrial", "Industrial"),
+                ("Custom", "Custom Components")
             };
 
             bool hasFilter = !string.IsNullOrWhiteSpace(filter);
@@ -4162,6 +5318,9 @@ void DrawViewportOverlays(Graphics g)
             libraryTree.ExpandAll();
             ApplyTheme();
         }
+
+        static bool IsCustomCategory(string category)
+            => CustomCategories.Contains(category);
         void OnProjectStructureChanged()
 {
     SyncFeatureProfileFromBuild();
@@ -4182,9 +5341,101 @@ void DrawViewportOverlays(Graphics g)
                 return;
             }
 
+            var snapshot = CaptureUndoSnapshot();
             project.Instances.Remove(selected);
             selected = null;
+            CommitUndoSnapshot(snapshot);
             OnProjectStructureChanged();
+        }
+
+        PlacedInstance? HitTestPart(PointF worldPos)
+        {
+            if (project == null) return null;
+            for (int i = project.Instances.Count - 1; i >= 0; i--)
+            {
+                var p = project.Instances[i];
+                if (p.Type == PartType.Frame) continue;
+                var partWorldPos = GetPartWorldPosition(p);
+                float radius = GetPartHitRadius(p);
+                if (Distance(partWorldPos, worldPos) <= radius)
+                    return p;
+            }
+
+            if (HitTestFrame(worldPos))
+                return GetFrame();
+
+            return null;
+        }
+
+        float GetPartHitRadius(PlacedInstance p)
+        {
+            if (p.Type == PartType.Battery) return 40f;
+            if (p.Type == PartType.Motor || p.Type == PartType.Propeller) return 22f;
+            if (p.Type == PartType.ESC) return 20f;
+            if (p.Type == PartType.FlightController) return 20f;
+            if (p.Type == PartType.Camera) return 16f;
+            if (p.Type == PartType.Receiver) return 14f;
+            if (p.Type == PartType.GPS) return 16f;
+            if (p.Type == PartType.VTX) return 16f;
+            if (p.Type == PartType.Antenna) return 12f;
+            if (p.Type == PartType.Buzzer) return 12f;
+            if (p.Type == PartType.LED) return 12f;
+            if (p.Type == PartType.CustomComponent)
+            {
+                var custom = AssetLibrary.Get(p.AssetId) as CustomComponentAsset;
+                if (custom != null)
+                    return Math.Max(custom.WidthMm, custom.HeightMm) * 0.3f;
+            }
+            return 18f;
+        }
+
+        void ShowViewportContextMenu(Point location)
+        {
+            if (viewportContextMenu == null)
+            {
+                viewportContextMenu = new ContextMenuStrip
+                {
+                    RenderMode = ToolStripRenderMode.Professional,
+                    Renderer = toolStripRenderer
+                };
+
+                var infoItem = new ToolStripMenuItem("Info", null, (_,__) =>
+                {
+                    if (selected != null)
+                        MessageBox.Show(GetPlacedPartInfo(selected), "Part Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                });
+                var deleteItem = new ToolStripMenuItem("Delete", null, (_,__) => DeleteSelectedPart());
+                var duplicateItem = new ToolStripMenuItem("Duplicate", null, (_,__) => DuplicateSelectedPart());
+                var copyItem = new ToolStripMenuItem("Copy", null, (_,__) => CopySelectedPart());
+                var pasteItem = new ToolStripMenuItem("Paste", null, (_,__) => PasteClipboardPart());
+                var toggle3dItem = new ToolStripMenuItem("Toggle 3D View", null, (_,__) => ToggleViewport3D());
+
+                viewportContextMenu.Items.AddRange(new ToolStripItem[]
+                {
+                    infoItem,
+                    deleteItem,
+                    duplicateItem,
+                    new ToolStripSeparator(),
+                    copyItem,
+                    pasteItem,
+                    new ToolStripSeparator(),
+                    toggle3dItem
+                });
+
+                viewportContextMenu.Opening += (_, __) =>
+                {
+                    bool hasSelected = selected != null;
+                    infoItem.Enabled = hasSelected;
+                    deleteItem.Enabled = hasSelected && selected?.Type != PartType.Frame;
+                    duplicateItem.Enabled = hasSelected;
+                    copyItem.Enabled = hasSelected;
+                    pasteItem.Enabled = clipboardPart != null;
+                    toggle3dItem.Checked = viewportIs3D;
+                };
+            }
+
+            ApplyContextMenuTheme(viewportContextMenu);
+            viewportContextMenu.Show(viewport, location);
         }
 
         void DuplicateSelectedPart()
@@ -4215,6 +5466,7 @@ void DrawViewportOverlays(Graphics g)
                 return;
             }
 
+            var snapshot = CaptureUndoSnapshot();
             var clone = new PlacedInstance
             {
                 AssetId = selected.AssetId,
@@ -4264,6 +5516,7 @@ void DrawViewportOverlays(Graphics g)
 
             project.Instances.Add(clone);
             selected = clone;
+            CommitUndoSnapshot(snapshot);
             OnProjectStructureChanged();
         }
 
@@ -4401,6 +5654,10 @@ void DrawViewportOverlays(Graphics g)
             logoImage?.Dispose();
             logoImage = null;
 
+            foreach (var img in customImageCache.Values)
+                img.Dispose();
+            customImageCache.Clear();
+
             base.OnFormClosing(e);
         }
 
@@ -4443,11 +5700,29 @@ void DrawViewportOverlays(Graphics g)
                 if (twrValueLabel != null) twrValueLabel.Text = "--";
                 if (hoverValueLabel != null) hoverValueLabel.Text = "--";
                 if (flightValueLabel != null) flightValueLabel.Text = "--";
+                if (thrustRequiredValueLabel != null) thrustRequiredValueLabel.Text = "--";
+                if (maxThrustValueLabel != null) maxThrustValueLabel.Text = "--";
+                if (thrustMarginValueLabel != null) thrustMarginValueLabel.Text = "--";
                 if (sagValueLabel != null) sagValueLabel.Text = "--";
                 if (tempValueLabel != null) tempValueLabel.Text = "--";
+                if (motorTempLimitLabel != null) motorTempLimitLabel.Text = "--";
+                if (batteryMaxCurrentLabel != null) batteryMaxCurrentLabel.Text = "--";
+                if (powerHoverCurrentLabel != null) powerHoverCurrentLabel.Text = "--";
+                if (peakCurrentLabel != null) peakCurrentLabel.Text = "--";
+                if (escRatingLabel != null) escRatingLabel.Text = "--";
                 if (cgValueLabel != null) cgValueLabel.Text = "--";
-                if (inertiaValueLabel != null) inertiaValueLabel.Text = "--";
+                if (rollInertiaValueLabel != null) rollInertiaValueLabel.Text = "--";
+                if (pitchInertiaValueLabel != null) pitchInertiaValueLabel.Text = "--";
+                if (yawInertiaValueLabel != null) yawInertiaValueLabel.Text = "--";
                 if (yawValueLabel != null) yawValueLabel.Text = "--";
+                if (payloadMaxLabel != null) payloadMaxLabel.Text = "--";
+                if (payloadCurrentLabel != null) payloadCurrentLabel.Text = "--";
+                if (payloadRemainingLabel != null) payloadRemainingLabel.Text = "--";
+                if (massFrameLabel != null) massFrameLabel.Text = "--";
+                if (massMotorsLabel != null) massMotorsLabel.Text = "--";
+                if (massEscLabel != null) massEscLabel.Text = "--";
+                if (massBatteryLabel != null) massBatteryLabel.Text = "--";
+                if (massPayloadLabel != null) massPayloadLabel.Text = "--";
                 if (missingValueLabel != null) missingValueLabel.Text = "--";
                 if (overcurrentValueLabel != null) overcurrentValueLabel.Text = "--";
                 if (overheatValueLabel != null) overheatValueLabel.Text = "--";
@@ -4455,8 +5730,14 @@ void DrawViewportOverlays(Graphics g)
                 if (allUpWeightLabel != null) allUpWeightLabel.Text = "All-Up Weight: --";
                 if (totalThrustLabel != null) totalThrustLabel.Text = "Total Thrust: --";
                 if (hoverCurrentLabel != null) hoverCurrentLabel.Text = "Hover Current: --";
-                if (efficiencyIndexLabel != null) efficiencyIndexLabel.Text = "Efficiency Index: --";
+                if (efficiencyIndexLabel != null) efficiencyIndexLabel.Text = "Power-to-Weight Efficiency Score: --";
                 if (stabilityIndexLabel != null) stabilityIndexLabel.Text = "Stability Index: --";
+                if (cgRowPanel != null) cgRowPanel.Visible = false;
+                if (rollInertiaRowPanel != null) rollInertiaRowPanel.Visible = false;
+                if (pitchInertiaRowPanel != null) pitchInertiaRowPanel.Visible = false;
+                if (yawInertiaRowPanel != null) yawInertiaRowPanel.Visible = false;
+                if (yawStabilityRowPanel != null) yawStabilityRowPanel.Visible = false;
+                if (stabilityHeaderLabel != null) stabilityHeaderLabel.Visible = false;
                 UpdateFeatureSetPanel();
                 return;
             }
@@ -4490,31 +5771,50 @@ void DrawViewportOverlays(Graphics g)
             float estMass = 0f;
             float estThrust = 0f;
             float estCurrentAtHover = 0f;
+            float estPeakCurrent = 0f;
+            float peakMotorCurrent = 0f;
+            float massFrame = 0f;
+            float massMotors = 0f;
+            float massEsc = 0f;
+            float massBattery = 0f;
+            float massPayload = payloadMassKg;
             foreach (var p in project.Instances)
             {
                 if (p.Type == PartType.Motor)
                 {
                     var motorAsset = AssetLibrary.Get(p.AssetId) as MotorAsset;
                     var motorName = motorAsset?.Name ?? p.AssetId;
-                    estMass += motorAsset?.MassKg > 0 ? motorAsset.MassKg : PhysicsDatabase.MotorMass(motorName);
-                    float maxr = motorAsset?.MaxRPM > 0 ? motorAsset.MaxRPM : PhysicsDatabase.MaxRPM(motorName);
-                    estThrust += ThrustFromRPM(maxr);
+                    float motorMass = motorAsset?.MassKg > 0 ? motorAsset.MassKg : PhysicsDatabase.MotorMass(motorName);
+                    estMass += motorMass;
+                    massMotors += motorMass;
+                    float maxThrust = motorAsset?.MaxThrust > 0 ? motorAsset.MaxThrust : PhysicsDatabase.GetMaxThrust(motorName);
+                    estThrust += maxThrust;
                     float maxCurrent = motorAsset?.MaxCurrent > 0 ? motorAsset.MaxCurrent : PhysicsDatabase.MaxCurrent(motorName);
-                    estCurrentAtHover += maxCurrent * 0.45f;
+                    float hoverCurrent = PhysicsDatabase.GetCurrentDraw(motorName);
+                    estCurrentAtHover += hoverCurrent > 0 ? hoverCurrent : maxCurrent * 0.45f;
+                    estPeakCurrent += maxCurrent;
+                    peakMotorCurrent = Math.Max(peakMotorCurrent, maxCurrent);
                 }
                 else if (p.Type == PartType.Frame)
                 {
-                    estMass += PhysicsDatabase.FrameMass();
+                    var frameAssetForMass = AssetLibrary.Get(p.AssetId) as FrameAsset;
+                    float frameMass = frameAssetForMass?.MassKg > 0 ? frameAssetForMass.MassKg : PhysicsDatabase.FrameMass();
+                    estMass += frameMass;
+                    massFrame += frameMass;
                 }
                 else if (p.Type == PartType.Battery)
                 {
                     var bat = AssetLibrary.Get(p.AssetId) as BatteryAsset;
-                    estMass += bat?.MassKg > 0 ? bat.MassKg : PhysicsDatabase.BatteryMass();
+                    float batteryMass = bat?.MassKg > 0 ? bat.MassKg : PhysicsDatabase.BatteryMass();
+                    estMass += batteryMass;
+                    massBattery += batteryMass;
                 }
                 else if (p.Type == PartType.ESC)
                 {
                     var escAsset = AssetLibrary.Get(p.AssetId) as ESCAsset;
-                    estMass += escAsset?.MassKg > 0 ? escAsset.MassKg : PhysicsDatabase.EscMass();
+                    float escMass = escAsset?.MassKg > 0 ? escAsset.MassKg : PhysicsDatabase.EscMass();
+                    estMass += escMass;
+                    massEsc += escMass;
                 }
                 else if (p.Type == PartType.FlightController)
                 {
@@ -4561,6 +5861,15 @@ void DrawViewportOverlays(Graphics g)
                     var ledAsset = AssetLibrary.Get(p.AssetId) as LedAsset;
                     estMass += ledAsset?.MassKg > 0 ? ledAsset.MassKg : PhysicsDatabase.LedMass();
                 }
+                else if (p.Type == PartType.CustomComponent)
+                {
+                    var customAsset = AssetLibrary.Get(p.AssetId) as CustomComponentAsset;
+                    if (customAsset != null)
+                    {
+                        estMass += customAsset.MassKg;
+                        estCurrentAtHover += Math.Max(0f, customAsset.PowerDrawA);
+                    }
+                }
             }
 
             estMass += payloadMass;
@@ -4573,6 +5882,48 @@ void DrawViewportOverlays(Graphics g)
             float currentForEstimate = totalCurrentA > 0.1f ? totalCurrentA : estCurrentAtHover;
             float flightMins = currentForEstimate > 0.1f ? (batteryRemainingAh / currentForEstimate) * 60f : 0f;
             float sagVolts = Math.Max(0f, batteryVoltageNominal - batteryVoltage);
+            float hoverThrustRequired = liveMass > 0 ? liveMass * GRAVITY : 0f;
+            float maxThrustAvailable = estThrust > 0.1f ? estThrust : liveThrust;
+            float thrustMarginPct = maxThrustAvailable > 0f
+                ? MathF.Max(0f, (maxThrustAvailable - hoverThrustRequired) / maxThrustAvailable) * 100f
+                : 0f;
+
+            var batteryAsset = batteryInst != null ? AssetLibrary.Get(batteryInst.AssetId) as BatteryAsset : null;
+            float batteryMaxContinuousA = 0f;
+            if (batteryAsset != null)
+            {
+                float capAh = batteryAsset.CapacityAh > 0 ? batteryAsset.CapacityAh : batteryCapacityAh;
+                float cRating = batteryAsset.MaxDischargeC > 0 ? batteryAsset.MaxDischargeC : featureProfile.BatteryCRating;
+                batteryMaxContinuousA = capAh * Math.Max(1f, cRating);
+            }
+
+            float escRatingA = 0f;
+            var escRatings = project.Instances
+                .Where(i => i.Type == PartType.ESC)
+                .Select(i => AssetLibrary.Get(i.AssetId) as ESCAsset)
+                .Where(e => e != null)
+                .Select(e => e!.ContinuousCurrent)
+                .Where(v => v > 0f)
+                .ToList();
+            if (escRatings.Count > 0)
+                escRatingA = escRatings.Min();
+            else if (featureProfile.EscCurrentLimitA > 0f)
+                escRatingA = featureProfile.EscCurrentLimitA;
+
+            bool escOverLimit = escRatingA > 0f && peakMotorCurrent > 0f && escRatingA < peakMotorCurrent;
+
+            float maxSafeMassKg = maxThrustAvailable > 0f ? (maxThrustAvailable * 0.65f) / GRAVITY : 0f;
+            float baseMassKg = Math.Max(0f, liveMass - payloadMass);
+            float maxPayloadSafeKg = Math.Max(0f, maxSafeMassKg - baseMassKg);
+            float remainingPayloadKg = Math.Max(0f, maxPayloadSafeKg - payloadMass);
+
+            float efficiencyScore = 0f;
+            if (twr > 0.01f && hoverPct > 0.01f)
+            {
+                float twrScore = Math.Clamp((twr / 2.5f) * 60f, 0f, 60f);
+                float headroomScore = Math.Clamp((100f - hoverPct) / 35f, 0f, 1f) * 40f;
+                efficiencyScore = Math.Clamp(twrScore + headroomScore, 0f, 100f);
+            }
 
             workspaceStatus.Text = $"Workspace: {WorkspaceDisplayName(currentWorkspace)}";
             modeStatus.Text = $" | Mode: {SimulationModeDisplayName(simulationMode)}";
@@ -4583,25 +5934,130 @@ void DrawViewportOverlays(Graphics g)
             errorsStatus.ForeColor = errors == 0 ? CurrentPalette.Success : CurrentPalette.Warning;
 
             if (twrValueLabel != null) twrValueLabel.Text = twr > 0 ? $"{twr:0.0}:1" : "--";
-            if (hoverValueLabel != null) hoverValueLabel.Text = hoverPct > 0 ? $"{hoverPct:0}%" : "--";
+            if (hoverValueLabel != null)
+            {
+                string hoverText = hoverPct > 0 ? $"{hoverPct:0}% (Rec < 65%)" : "--";
+                if (hoverPct > 75f)
+                    hoverText += " — Insufficient power headroom";
+                hoverValueLabel.Text = hoverText;
+            }
             if (flightValueLabel != null) flightValueLabel.Text = flightMins > 0 ? $"{flightMins:0.0} min" : "--";
+            if (thrustRequiredValueLabel != null) thrustRequiredValueLabel.Text = hoverThrustRequired > 0 ? $"{hoverThrustRequired:0.0} N" : "--";
+            if (maxThrustValueLabel != null) maxThrustValueLabel.Text = maxThrustAvailable > 0 ? $"{maxThrustAvailable:0.0} N" : "--";
+            if (thrustMarginValueLabel != null) thrustMarginValueLabel.Text = maxThrustAvailable > 0 ? $"{thrustMarginPct:0}%" : "--";
             if (sagValueLabel != null) sagValueLabel.Text = batteryInst != null ? $"{sagVolts:0.0} V" : "--";
             if (tempValueLabel != null)
-                tempValueLabel.Text = motors > 0 ? $"{motorTempC:0}C / {escTempC:0}C" : "--";
+                tempValueLabel.Text = motors > 0 ? $"{motorTempC:0} C" : "--";
+            if (motorTempLimitLabel != null)
+                motorTempLimitLabel.Text = motors > 0 ? "120 C" : "--";
 
-            if (twrValueLabel != null) twrValueLabel.ForeColor = twr >= 2.0f ? CurrentPalette.Success : CurrentPalette.Warning;
-            if (hoverValueLabel != null) hoverValueLabel.ForeColor = hoverPct <= 65f ? CurrentPalette.Success : CurrentPalette.Warning;
-            if (sagValueLabel != null) sagValueLabel.ForeColor = sagVolts <= 2.5f ? CurrentPalette.TextPrimary : CurrentPalette.Warning;
-            if (tempValueLabel != null) tempValueLabel.ForeColor = (motorTempC > 95f || escTempC > 85f) ? CurrentPalette.Warning : CurrentPalette.TextPrimary;
+            if (twrValueLabel != null)
+                twrValueLabel.ForeColor = twr > 0f
+                    ? (twr >= 2.0f ? CurrentPalette.Success : CurrentPalette.Warning)
+                    : CurrentPalette.TextPrimary;
+            if (hoverValueLabel != null)
+            {
+                if (hoverPct <= 0f)
+                {
+                    hoverValueLabel.ForeColor = CurrentPalette.TextPrimary;
+                }
+                else if (hoverPct > 75f)
+                    hoverValueLabel.ForeColor = Color.FromArgb(196, 64, 64);
+                else
+                    hoverValueLabel.ForeColor = hoverPct <= 65f ? CurrentPalette.Success : CurrentPalette.Warning;
+            }
+            if (thrustMarginValueLabel != null)
+            {
+                if (maxThrustAvailable <= 0f)
+                    thrustMarginValueLabel.ForeColor = CurrentPalette.TextPrimary;
+                else if (thrustMarginPct >= 40f)
+                    thrustMarginValueLabel.ForeColor = CurrentPalette.Success;
+                else if (thrustMarginPct >= 20f)
+                    thrustMarginValueLabel.ForeColor = CurrentPalette.Warning;
+                else
+                    thrustMarginValueLabel.ForeColor = Color.FromArgb(196, 64, 64);
+            }
+            if (sagValueLabel != null)
+                sagValueLabel.ForeColor = batteryInst == null ? CurrentPalette.TextPrimary
+                    : (sagVolts <= 2.5f ? CurrentPalette.TextPrimary : CurrentPalette.Warning);
+            if (tempValueLabel != null)
+                tempValueLabel.ForeColor = motors == 0 ? CurrentPalette.TextPrimary
+                    : (motorTempC > 95f ? CurrentPalette.Warning : CurrentPalette.TextPrimary);
 
             float cgOffset = 0f;
             if (Math.Abs(featureProfile.CgOffsetXcm) > 0.01f || Math.Abs(featureProfile.CgOffsetYcm) > 0.01f)
                 cgOffset = MathF.Sqrt(featureProfile.CgOffsetXcm * featureProfile.CgOffsetXcm + featureProfile.CgOffsetYcm * featureProfile.CgOffsetYcm);
             if (Math.Abs(payloadOffsetCm) > cgOffset) cgOffset = Math.Abs(payloadOffsetCm);
 
-            if (cgValueLabel != null) cgValueLabel.Text = cgOffset > 0.01f ? $"{cgOffset:0.0} cm" : "--";
-            if (inertiaValueLabel != null) inertiaValueLabel.Text = "--";
-            if (yawValueLabel != null) yawValueLabel.Text = yawImbalancePct > 0.01f ? $"{Math.Max(0f, 100f - yawImbalancePct):0}%" : "--";
+            bool hasFrame = frames > 0 && frameAsset != null;
+            var motorMounts = hasFrame ? GetMotorMounts(frameAsset) : new List<(MountPoint Mount, int Index)>();
+            float maxRadius = 0f;
+            for (int i = 0; i < motorMounts.Count; i++)
+            {
+                var pos = motorMounts[i].Mount.Position;
+                float dist = MathF.Sqrt(pos.X * pos.X + pos.Y * pos.Y);
+                if (dist > maxRadius) maxRadius = dist;
+            }
+            float bodySizeMm = hasFrame && frameAsset?.BodySizeMm > 0 ? frameAsset.BodySizeMm : 0f;
+
+            string InertiaBand(float value, float low, float high)
+            {
+                if (value <= 0f) return "--";
+                if (value < low) return "Low";
+                if (value < high) return "Medium";
+                return "High";
+            }
+
+            string rollInertia = hasFrame ? InertiaBand(maxRadius, 45f, 85f) : "--";
+            string pitchInertia = hasFrame ? InertiaBand(maxRadius, 45f, 85f) : "--";
+            string yawInertia = hasFrame
+                ? (bodySizeMm > 0f ? InertiaBand(bodySizeMm, 40f, 80f) : InertiaBand(maxRadius * 0.8f, 45f, 85f))
+                : "--";
+
+            bool showCg = hasFrame && cgOffset > 0.01f;
+            bool showRoll = rollInertia != "--";
+            bool showPitch = pitchInertia != "--";
+            bool showYawInertia = yawInertia != "--";
+            bool showYawStability = hasFrame && yawImbalancePct > 0.01f;
+
+            if (cgValueLabel != null) cgValueLabel.Text = showCg ? $"{cgOffset:0.0} cm" : "--";
+            if (rollInertiaValueLabel != null) rollInertiaValueLabel.Text = rollInertia;
+            if (pitchInertiaValueLabel != null) pitchInertiaValueLabel.Text = pitchInertia;
+            if (yawInertiaValueLabel != null) yawInertiaValueLabel.Text = yawInertia;
+            if (yawValueLabel != null) yawValueLabel.Text = showYawStability ? $"{Math.Max(0f, 100f - yawImbalancePct):0}%" : "--";
+
+            if (cgRowPanel != null) cgRowPanel.Visible = showCg;
+            if (rollInertiaRowPanel != null) rollInertiaRowPanel.Visible = showRoll;
+            if (pitchInertiaRowPanel != null) pitchInertiaRowPanel.Visible = showPitch;
+            if (yawInertiaRowPanel != null) yawInertiaRowPanel.Visible = showYawInertia;
+            if (yawStabilityRowPanel != null) yawStabilityRowPanel.Visible = showYawStability;
+            if (stabilityHeaderLabel != null)
+                stabilityHeaderLabel.Visible = showCg || showRoll || showPitch || showYawInertia || showYawStability;
+
+            if (batteryMaxCurrentLabel != null)
+                batteryMaxCurrentLabel.Text = batteryMaxContinuousA > 0 ? $"{batteryMaxContinuousA:0} A" : "--";
+            if (powerHoverCurrentLabel != null)
+                powerHoverCurrentLabel.Text = currentForEstimate > 0.1f ? $"{currentForEstimate:0.0} A" : "--";
+            if (peakCurrentLabel != null)
+                peakCurrentLabel.Text = estPeakCurrent > 0.1f ? $"{estPeakCurrent:0.0} A" : "--";
+            if (escRatingLabel != null)
+                escRatingLabel.Text = escRatingA > 0 ? $"{escRatingA:0} A per motor{(escOverLimit ? " (Overlimit)" : "")}" : "--";
+
+            if (escRatingLabel != null)
+                escRatingLabel.ForeColor = escOverLimit ? Color.FromArgb(196, 64, 64) : CurrentPalette.TextPrimary;
+
+            if (payloadMaxLabel != null)
+                payloadMaxLabel.Text = maxThrustAvailable > 0 ? $"{maxPayloadSafeKg * 1000f:0} g" : "--";
+            if (payloadCurrentLabel != null)
+                payloadCurrentLabel.Text = $"{payloadMass * 1000f:0} g";
+            if (payloadRemainingLabel != null)
+                payloadRemainingLabel.Text = maxThrustAvailable > 0 ? $"{remainingPayloadKg * 1000f:0} g" : "--";
+
+            if (massFrameLabel != null) massFrameLabel.Text = $"{massFrame * 1000f:0} g";
+            if (massMotorsLabel != null) massMotorsLabel.Text = $"{massMotors * 1000f:0} g";
+            if (massEscLabel != null) massEscLabel.Text = $"{massEsc * 1000f:0} g";
+            if (massBatteryLabel != null) massBatteryLabel.Text = $"{massBattery * 1000f:0} g";
+            if (massPayloadLabel != null) massPayloadLabel.Text = $"{payloadMass * 1000f:0} g";
 
             var missing = new List<string>();
             if (frames == 0) missing.Add("Frame");
@@ -4617,16 +6073,65 @@ void DrawViewportOverlays(Graphics g)
 
             if (overcurrentValueLabel != null)
             {
-                if (currentForEstimate <= 0.1f) overcurrentValueLabel.Text = "--";
-                else if (currentForEstimate > 80f) overcurrentValueLabel.Text = "High";
-                else if (currentForEstimate > 60f) overcurrentValueLabel.Text = "Moderate";
-                else overcurrentValueLabel.Text = "Low";
+                if (escOverLimit)
+                {
+                    overcurrentValueLabel.Text = "ESC Overlimit";
+                }
+                else if (currentForEstimate <= 0.1f)
+                {
+                    overcurrentValueLabel.Text = "--";
+                }
+                else if (currentForEstimate > 80f)
+                {
+                    overcurrentValueLabel.Text = "High";
+                }
+                else if (currentForEstimate > 60f)
+                {
+                    overcurrentValueLabel.Text = "Moderate";
+                }
+                else
+                {
+                    overcurrentValueLabel.Text = "Low";
+                }
             }
 
             if (overheatValueLabel != null)
             {
-                if (motors == 0) overheatValueLabel.Text = "--";
-                else overheatValueLabel.Text = (motorTempC > 95f || escTempC > 85f) ? "High" : "Normal";
+                if (motors == 0)
+                {
+                    overheatValueLabel.Text = "--";
+                }
+                else
+                {
+                    const float motorLimitC = 120f;
+                    float tempSlopeCps = 0f;
+                    if (telemetry.Count >= 12)
+                    {
+                        var window = telemetry.Skip(Math.Max(0, telemetry.Count - 60)).ToList();
+                        var first = window.First();
+                        var last = window.Last();
+                        float dt = (float)(last.TimeSec - first.TimeSec);
+                        if (dt > 0.1f)
+                            tempSlopeCps = (last.MotorTempC - first.MotorTempC) / dt;
+                    }
+
+                    if (motorTempC >= motorLimitC)
+                    {
+                        overheatValueLabel.Text = "Critical";
+                    }
+                    else if (tempSlopeCps > 0.01f)
+                    {
+                        float minutesToLimit = (motorLimitC - motorTempC) / tempSlopeCps / 60f;
+                        if (minutesToLimit < 30f)
+                            overheatValueLabel.Text = $"High (Est {minutesToLimit:0.0} min)";
+                        else
+                            overheatValueLabel.Text = (motorTempC > 95f || escTempC > 85f) ? "High" : "Normal";
+                    }
+                    else
+                    {
+                        overheatValueLabel.Text = (motorTempC > 95f || escTempC > 85f) ? "High" : "Normal";
+                    }
+                }
             }
 
             if (structuralValueLabel != null)
@@ -4642,11 +6147,10 @@ void DrawViewportOverlays(Graphics g)
             if (hoverCurrentLabel != null) hoverCurrentLabel.Text = currentForEstimate > 0.1f ? $"Hover Current: {currentForEstimate:0.0} A" : "Hover Current: --";
             if (efficiencyIndexLabel != null)
             {
-                if (motors == 0) efficiencyIndexLabel.Text = "Efficiency Index: --";
-                else if (currentForEstimate > 0.1f && liveThrust > 0.1f)
-                    efficiencyIndexLabel.Text = $"Efficiency Index: {(liveThrust / currentForEstimate):0.0}";
+                if (motors == 0 || efficiencyScore <= 0f)
+                    efficiencyIndexLabel.Text = "Power-to-Weight Efficiency Score: --";
                 else
-                    efficiencyIndexLabel.Text = "Efficiency Index: --";
+                    efficiencyIndexLabel.Text = $"Power-to-Weight Efficiency Score: {efficiencyScore:0} / 100";
             }
             if (stabilityIndexLabel != null)
             {
@@ -4696,6 +6200,7 @@ void DrawViewportOverlays(Graphics g)
                 "Antennas" => new AntennaAsset { Name = "New Antenna", Category = category },
                 "Buzzers" => new BuzzerAsset { Name = "New Buzzer", Category = category },
                 "LEDs" => new LedAsset { Name = "New LED", Category = category },
+                "Custom" => new CustomComponentAsset { Name = "New Custom Component", Category = category },
                 _ => new MotorAsset { Name = "New Motor", Category = "Motors" }
             };
 
@@ -4954,7 +6459,8 @@ void DrawViewportOverlays(Graphics g)
             VTX,
             Antenna,
             Buzzer,
-            LED
+            LED,
+            CustomComponent
         }
 
         enum EscLayout
@@ -4994,6 +6500,15 @@ void DrawViewportOverlays(Graphics g)
     Buzzer,
     LED
 }
+
+        enum CustomShape
+        {
+            Rectangle,
+            RoundedRect,
+            Circle,
+            Triangle,
+            Capsule
+        }
 
 
         class FrameDefinition
@@ -5054,6 +6569,64 @@ void DrawViewportOverlays(Graphics g)
             public abstract MountType RequiredMount { get; }
         }
 
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        class CustomProperty
+        {
+            public string Name { get; set; } = "Property";
+            public string Value { get; set; } = "";
+            public string Unit { get; set; } = "";
+
+            public override string ToString()
+            {
+                return string.IsNullOrWhiteSpace(Unit) ? $"{Name}: {Value}" : $"{Name}: {Value} {Unit}";
+            }
+        }
+
+        class CustomComponentAsset : Asset
+        {
+            public override MountType RequiredMount => Mount;
+
+            public MountType Mount { get; set; } = MountType.None;
+            public float WidthMm { get; set; } = 28f;
+            public float HeightMm { get; set; } = 18f;
+            public float DepthMm { get; set; } = 8f;
+            public float PowerDrawA { get; set; }
+            public float VoltageMin { get; set; } = 5f;
+            public float VoltageMax { get; set; } = 20f;
+            public string SignalType { get; set; } = "UART";
+            public string Connector { get; set; } = "JST-SH";
+
+            public CustomShape Shape { get; set; } = CustomShape.RoundedRect;
+            public float RotationDeg { get; set; }
+            public int CornerRadius { get; set; } = 6;
+
+            [Browsable(false)]
+            public int FillColorArgb { get; set; } = Color.FromArgb(200, 90, 132, 255).ToArgb();
+            [Browsable(false)]
+            public int StrokeColorArgb { get; set; } = Color.FromArgb(200, 26, 36, 54).ToArgb();
+            public float StrokeWidth { get; set; } = 1.2f;
+            public float Opacity { get; set; } = 1.0f;
+
+            public string ImagePath { get; set; } = "";
+
+            [Editor(typeof(CollectionEditor), typeof(UITypeEditor))]
+            public BindingList<CustomProperty> Properties { get; set; } = new();
+
+            [JsonIgnore]
+            public Color FillColor
+            {
+                get => Color.FromArgb(FillColorArgb);
+                set => FillColorArgb = value.ToArgb();
+            }
+
+            [JsonIgnore]
+            public Color StrokeColor
+            {
+                get => Color.FromArgb(StrokeColorArgb);
+                set => StrokeColorArgb = value.ToArgb();
+            }
+        }
+
         class MotorAsset : Asset
         {
             public override MountType RequiredMount => MountType.Motor;
@@ -5090,6 +6663,8 @@ void DrawViewportOverlays(Graphics g)
             public float ResponseDelayMs { get; set; } = 8f;
             public float ThermalLimitC { get; set; } = 95f;
             public float FailureProbabilityPct { get; set; } = 1.5f;
+            public bool IsFourInOne { get; set; }
+            public string VoltageRating { get; set; } = "3S-6S";
         }
 
         class FlightControllerAsset : Asset
@@ -5100,6 +6675,9 @@ void DrawViewportOverlays(Graphics g)
             public bool HasOSD { get; set; }
             public bool HasBlackbox { get; set; }
             public float GyroUpdateRate { get; set; }
+            public float MountSizeMm { get; set; } = 30.5f;
+            public string Gyro { get; set; } = "MPU6000";
+            public bool HasBarometer { get; set; }
         }
 
         class ReceiverAsset : Asset
@@ -5163,6 +6741,8 @@ void DrawViewportOverlays(Graphics g)
             public string Resolution { get; set; } = "4K";
             public float FovDeg { get; set; } = 155f;
             public bool Stabilization { get; set; } = true;
+            public string FormFactor { get; set; } = "Micro";
+            public string SystemType { get; set; } = "Analog";
         }
 
         class FrameAsset : Asset
@@ -5177,6 +6757,8 @@ void DrawViewportOverlays(Graphics g)
             public float CgOffsetYcm { get; set; }
             public FrameDefinition? Geometry { get; set; }
             public List<MountPoint> Mounts { get; set; } = new();
+            public string Style { get; set; } = "X";
+            public bool Ducted { get; set; }
             public override MountType RequiredMount => MountType.None;
         }
 
@@ -5218,6 +6800,15 @@ void DrawViewportOverlays(Graphics g)
                     "Antennas" => JsonSerializer.Deserialize<AntennaAsset>(json)!,
                     "Buzzers" => JsonSerializer.Deserialize<BuzzerAsset>(json)!,
                     "LEDs" => JsonSerializer.Deserialize<LedAsset>(json)!,
+                    "Custom" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Payload" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Landing Gear" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Aerodynamic Add-ons" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Telemetry" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Power Distribution" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Safety" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Advanced" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
+                    "Industrial" => JsonSerializer.Deserialize<CustomComponentAsset>(json)!,
                     _ => throw new Exception("Unknown asset type")
                 };
             }
@@ -5227,6 +6818,7 @@ void DrawViewportOverlays(Graphics g)
         {
             public static readonly Dictionary<string, Asset> Assets = new();
             public static readonly Dictionary<string, string> Paths = new();
+            public static string? CatalogBaseDir { get; private set; }
 
             public static readonly string UserAssetRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SilvuViewfinder", "Assets");
 
@@ -5235,6 +6827,7 @@ void DrawViewportOverlays(Graphics g)
                 // keep a small set of built-in assets for a nice initial experience
                 Assets.Clear();
                 Paths.Clear();
+                CatalogBaseDir = null;
 
                 var a = new MotorAsset
                 {
@@ -5514,6 +7107,27 @@ void DrawViewportOverlays(Graphics g)
                 };
                 Assets[ledSingle.Id] = ledSingle;
 
+                var customModule = new CustomComponentAsset
+                {
+                    Name = "Telemetry Radio",
+                    Category = "Custom",
+                    WidthMm = 22f,
+                    HeightMm = 14f,
+                    DepthMm = 4f,
+                    MassKg = 0.006f,
+                    PowerDrawA = 0.25f,
+                    VoltageMin = 5f,
+                    VoltageMax = 16f,
+                    SignalType = "UART",
+                    Connector = "GH-4",
+                    Shape = CustomShape.RoundedRect,
+                    CornerRadius = 6,
+                    Description = "Custom long-range telemetry module"
+                };
+                customModule.Properties.Add(new CustomProperty { Name = "Range", Value = "30", Unit = "km" });
+                customModule.Properties.Add(new CustomProperty { Name = "Protocol", Value = "CRSF" });
+                Assets[customModule.Id] = customModule;
+
                 FrameAsset CreateFrame(string name, FrameDefinition def, int armCount, int wheelbaseMm, float massKg, float armThicknessMm, string description)
                 {
                     float armLen = 0f;
@@ -5652,6 +7266,724 @@ void DrawViewportOverlays(Graphics g)
 
                 foreach (var frame in frames)
                     Assets[frame.Id] = frame;
+
+                LoadCatalog();
+            }
+
+            static void LoadCatalog()
+            {
+                var path = ResolveCatalogPath();
+                if (string.IsNullOrWhiteSpace(path) || !File.Exists(path))
+                    return;
+
+                try
+                {
+                    CatalogBaseDir = Path.GetDirectoryName(path);
+                    var json = File.ReadAllText(path);
+                    var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    };
+                    options.Converters.Add(new JsonStringEnumConverter());
+
+                    var catalog = JsonSerializer.Deserialize<CatalogRoot>(json, options);
+                    if (catalog == null) return;
+
+                    foreach (var frame in catalog.Frames)
+                    {
+                        var asset = CreateFrameFromCatalog(frame);
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var motor in catalog.Motors)
+                    {
+                        var asset = CreateMotorFromCatalog(motor);
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var prop in catalog.Props)
+                    {
+                        var asset = new PropellerAsset
+                        {
+                            Name = prop.Name,
+                            Category = "Props",
+                            DiameterInch = prop.DiameterInch,
+                            Pitch = prop.Pitch,
+                            BladeCount = prop.BladeCount,
+                            AerodynamicDragCoeff = prop.AerodynamicDragCoeff > 0 ? prop.AerodynamicDragCoeff : 0.08f,
+                            MassKg = prop.MassKg > 0 ? prop.MassKg : Math.Clamp(prop.DiameterInch * 0.0003f, 0.0008f, 0.01f),
+                            Description = prop.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var esc in catalog.Escs)
+                    {
+                        var asset = new ESCAsset
+                        {
+                            Name = esc.Name,
+                            Category = "ESC",
+                            ContinuousCurrent = esc.ContinuousCurrent,
+                            BurstCurrent = esc.BurstCurrent,
+                            MassKg = esc.MassKg,
+                            IsFourInOne = esc.IsFourInOne,
+                            VoltageRating = esc.VoltageRating ?? "3S-6S",
+                            Description = esc.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var battery in catalog.Batteries)
+                    {
+                        var asset = new BatteryAsset
+                        {
+                            Name = battery.Name,
+                            Category = "Batteries",
+                            Cells = battery.Cells,
+                            VoltageNominal = battery.VoltageNominal,
+                            CapacityAh = battery.CapacityAh,
+                            MaxDischargeC = battery.MaxDischargeC,
+                            Chemistry = battery.Chemistry,
+                            MassKg = battery.MassKg,
+                            Description = battery.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var fc in catalog.FlightControllers)
+                    {
+                        var asset = new FlightControllerAsset
+                        {
+                            Name = fc.Name,
+                            Category = "FC",
+                            MCU = fc.Mcu,
+                            UARTCount = fc.UartCount,
+                            HasOSD = fc.HasOsd,
+                            HasBlackbox = fc.HasBlackbox,
+                            GyroUpdateRate = fc.GyroUpdateRate,
+                            MountSizeMm = fc.MountSizeMm,
+                            Gyro = fc.Gyro ?? "MPU6000",
+                            HasBarometer = fc.HasBarometer,
+                            MassKg = fc.MassKg,
+                            Description = fc.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var rx in catalog.Receivers)
+                    {
+                        var asset = new ReceiverAsset
+                        {
+                            Name = rx.Name,
+                            Category = "Receivers",
+                            Protocol = rx.Protocol,
+                            FrequencyGHz = rx.FrequencyGhz,
+                            Telemetry = rx.Telemetry,
+                            MassKg = rx.MassKg,
+                            Description = rx.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var cam in catalog.Cameras)
+                    {
+                        var asset = new CameraAsset
+                        {
+                            Name = cam.Name,
+                            Category = "Cameras",
+                            Resolution = cam.Resolution,
+                            FovDeg = cam.FovDeg,
+                            Stabilization = cam.Stabilization,
+                            FormFactor = cam.FormFactor ?? "Micro",
+                            SystemType = cam.SystemType ?? "Analog",
+                            MassKg = cam.MassKg,
+                            Description = cam.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var gps in catalog.GpsModules)
+                    {
+                        var asset = new GpsAsset
+                        {
+                            Name = gps.Name,
+                            Category = "GPS",
+                            UpdateRateHz = gps.UpdateRateHz,
+                            AccuracyM = gps.AccuracyM,
+                            HasCompass = gps.HasCompass,
+                            MassKg = gps.MassKg,
+                            Description = gps.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var vtx in catalog.Vtx)
+                    {
+                        var asset = new VtxAsset
+                        {
+                            Name = vtx.Name,
+                            Category = "VTX",
+                            MaxPowerMw = vtx.MaxPowerMw,
+                            ChannelCount = vtx.ChannelCount,
+                            HasPitMode = vtx.HasPitMode,
+                            MassKg = vtx.MassKg,
+                            Description = vtx.Description ?? ""
+                        };
+                        AddAssetIfMissing(asset);
+                    }
+
+                    foreach (var custom in catalog.Custom)
+                    {
+                        var asset = CreateCustomFromCatalog(custom);
+                        AddAssetIfMissing(asset);
+                    }
+                }
+                catch
+                {
+                    // ignore catalog load failures
+                }
+            }
+
+            static string? ResolveCatalogPath()
+            {
+                var candidates = new[]
+                {
+                    Path.Combine(AppContext.BaseDirectory, "catalog.json"),
+                    Path.Combine(Environment.CurrentDirectory, "catalog.json")
+                };
+
+                foreach (var path in candidates)
+                {
+                    if (File.Exists(path))
+                        return path;
+                }
+
+                return null;
+            }
+
+            static void AddAssetIfMissing(Asset asset)
+            {
+                if (Assets.Values.Any(a => a.Category == asset.Category && a.Name.Equals(asset.Name, StringComparison.OrdinalIgnoreCase)))
+                    return;
+
+                Assets[asset.Id] = asset;
+            }
+
+            static FrameAsset CreateFrameFromCatalog(CatalogFrame frame)
+            {
+                var def = BuildFrameDefinition(frame.Style ?? "X", frame.ArmCount > 0 ? frame.ArmCount : 4, frame.WheelbaseMm);
+                float massKg = frame.MassKg > 0 ? frame.MassKg : EstimateFrameMass(frame.WheelbaseMm, frame.ArmThicknessMm);
+                float bodySize = frame.BodySizeMm > 0 ? frame.BodySizeMm : EstimateBodySize(frame.WheelbaseMm);
+                var asset = BuildFrame(frame.Name, def, frame.ArmCount, frame.WheelbaseMm, massKg, frame.ArmThicknessMm, frame.Description ?? "");
+                asset.BodySizeMm = bodySize;
+                asset.Style = frame.Style ?? "X";
+                asset.Ducted = frame.Ducted;
+                return asset;
+            }
+
+            static MotorAsset CreateMotorFromCatalog(CatalogMotor motor)
+            {
+                var (d, h) = ParseStator(motor.Stator);
+                float volume = MathF.PI * (d / 2f) * (d / 2f) * h;
+                float massKg = motor.MassKg > 0 ? motor.MassKg : Math.Clamp(volume * 0.000012f, 0.002f, 0.25f);
+                float maxCurrent = motor.MaxCurrentA > 0 ? motor.MaxCurrentA : Math.Clamp(d * h * 0.25f, 4f, 220f);
+                float maxThrust = motor.MaxThrustN > 0 ? motor.MaxThrustN : Math.Clamp(d * h * 0.1f, 1.5f, 90f);
+
+                var (vmin, vmax) = EstimateMotorVoltage(motor.Kv);
+                return new MotorAsset
+                {
+                    Name = motor.Name,
+                    Category = "Motors",
+                    KV = motor.Kv,
+                    MaxRPM = motor.MaxRpm > 0 ? motor.MaxRpm : motor.Kv * 16f,
+                    MaxCurrent = maxCurrent,
+                    MaxThrust = maxThrust,
+                    MassKg = massKg,
+                    VoltageMin = motor.VoltageMin > 0 ? motor.VoltageMin : vmin,
+                    VoltageMax = motor.VoltageMax > 0 ? motor.VoltageMax : vmax,
+                    Description = motor.Description ?? ""
+                };
+            }
+
+            static CustomComponentAsset CreateCustomFromCatalog(CatalogCustom custom)
+            {
+                var asset = new CustomComponentAsset
+                {
+                    Name = custom.Name,
+                    Category = string.IsNullOrWhiteSpace(custom.Category) ? "Custom" : custom.Category!,
+                    WidthMm = custom.WidthMm,
+                    HeightMm = custom.HeightMm,
+                    DepthMm = custom.DepthMm,
+                    MassKg = custom.MassKg,
+                    PowerDrawA = custom.PowerDrawA,
+                    VoltageMin = custom.VoltageMin,
+                    VoltageMax = custom.VoltageMax,
+                    SignalType = custom.SignalType ?? "",
+                    Connector = custom.Connector ?? "",
+                    Shape = ParseEnum(custom.Shape, CustomShape.RoundedRect),
+                    RotationDeg = custom.RotationDeg,
+                    CornerRadius = custom.CornerRadius > 0 ? custom.CornerRadius : 6,
+                    Opacity = custom.Opacity > 0 ? custom.Opacity : 1f,
+                    ImagePath = custom.ImagePath ?? "",
+                    Description = custom.Description ?? ""
+                };
+
+                asset.Mount = ParseEnum(custom.Mount, MountType.None);
+
+                if (!string.IsNullOrWhiteSpace(custom.FillColor))
+                    asset.FillColor = ParseColor(custom.FillColor);
+                if (!string.IsNullOrWhiteSpace(custom.StrokeColor))
+                    asset.StrokeColor = ParseColor(custom.StrokeColor);
+
+                if (custom.Properties != null)
+                {
+                    foreach (var prop in custom.Properties)
+                    {
+                        asset.Properties.Add(new CustomProperty
+                        {
+                            Name = prop.Name ?? "Property",
+                            Value = prop.Value ?? "",
+                            Unit = prop.Unit ?? ""
+                        });
+                    }
+                }
+
+                return asset;
+            }
+
+            static FrameAsset BuildFrame(string name, FrameDefinition def, int armCount, int wheelbaseMm, float massKg, float armThicknessMm, string description)
+            {
+                float armLen = 0f;
+                if (def.MotorMounts.Length > 0)
+                    armLen = def.MotorMounts.Max(p => MathF.Sqrt(p.X * p.X + p.Y * p.Y));
+
+                var frame = new FrameAsset
+                {
+                    Name = name,
+                    Category = "Frames",
+                    Geometry = def,
+                    ArmCount = armCount,
+                    ArmThicknessMm = armThicknessMm,
+                    ArmLengthMm = armLen,
+                    BodySizeMm = Math.Clamp(armLen * 0.35f, 40f, 70f),
+                    WheelbaseMm = wheelbaseMm,
+                    MassKg = massKg,
+                    Description = description
+                };
+
+                float fcSize = Math.Clamp(frame.BodySizeMm * 0.65f, 28f, 56f);
+                float rxOffset = Math.Clamp(frame.BodySizeMm * 0.9f, 36f, 70f);
+                float camOffset = Math.Clamp(frame.BodySizeMm * 1.5f, 60f, 105f);
+                float vtxOffset = -Math.Clamp(frame.BodySizeMm * 0.9f, 40f, 80f);
+                float gpsOffset = -Math.Clamp(frame.BodySizeMm * 1.4f, 65f, 110f);
+                float antennaOffset = -Math.Clamp(frame.BodySizeMm * 1.8f, 85f, 130f);
+                float buzzerOffset = -Math.Clamp(frame.BodySizeMm * 1.1f, 50f, 95f);
+                float ledOffset = Math.Clamp(frame.BodySizeMm * 1.4f, 60f, 110f);
+                float rxSize = Math.Clamp(fcSize * 0.55f, 18f, 34f);
+                float camW = Math.Clamp(fcSize * 0.9f, 24f, 48f);
+                float camH = Math.Clamp(fcSize * 0.6f, 18f, 34f);
+
+                for (int i = 0; i < def.MotorMounts.Length; i++)
+                {
+                    frame.Mounts.Add(new MountPoint
+                    {
+                        Type = MountType.Motor,
+                        Position = def.MotorMounts[i],
+                        Size = new SizeF(20, 20),
+                        Label = $"M{i + 1}"
+                    });
+
+                    frame.Mounts.Add(new MountPoint
+                    {
+                        Type = MountType.ESC,
+                        Position = new PointF(def.MotorMounts[i].X * 0.7f, def.MotorMounts[i].Y * 0.7f),
+                        Size = new SizeF(24, 36),
+                        Label = $"ESC{i + 1}"
+                    });
+                }
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.FlightController,
+                    Position = new PointF(0, 0),
+                    Size = new SizeF(fcSize, fcSize),
+                    Label = "FC Stack"
+                });
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.Receiver,
+                    Position = new PointF(0, rxOffset),
+                    Size = new SizeF(rxSize, rxSize),
+                    Label = "RX"
+                });
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.VTX,
+                    Position = new PointF(0, vtxOffset),
+                    Size = new SizeF(26, 20),
+                    Label = "VTX"
+                });
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.GPS,
+                    Position = new PointF(0, gpsOffset),
+                    Size = new SizeF(24, 24),
+                    Label = "GPS"
+                });
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.Antenna,
+                    Position = new PointF(0, antennaOffset),
+                    Size = new SizeF(10, 24),
+                    Label = "Antenna"
+                });
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.Buzzer,
+                    Position = new PointF(0, buzzerOffset),
+                    Size = new SizeF(18, 12),
+                    Label = "Buzzer"
+                });
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.LED,
+                    Position = new PointF(0, ledOffset),
+                    Size = new SizeF(24, 8),
+                    Label = "LED"
+                });
+
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.Camera,
+                    Position = new PointF(0, camOffset),
+                    Size = new SizeF(camW, camH),
+                    Label = "Camera"
+                });
+
+                var bay = def.BatteryBay;
+                frame.Mounts.Add(new MountPoint
+                {
+                    Type = MountType.Battery,
+                    Position = new PointF(bay.X + bay.Width / 2f, bay.Y + bay.Height / 2f),
+                    Size = new SizeF(bay.Width, bay.Height),
+                    Label = "Battery Tray"
+                });
+
+                return frame;
+            }
+
+            static FrameDefinition BuildFrameDefinition(string style, int armCount, int wheelbaseMm)
+            {
+                float r = wheelbaseMm / 2f;
+                var mounts = new List<PointF>();
+                string normalized = style.Trim();
+
+                if (normalized.Equals("Y6", StringComparison.OrdinalIgnoreCase))
+                {
+                    float armR = r * 0.7f;
+                    for (int i = 0; i < 3; i++)
+                    {
+                        float angle = (float)(Math.PI * 2 * i / 3.0);
+                        var basePos = new PointF(MathF.Cos(angle) * armR, MathF.Sin(angle) * armR);
+                        mounts.Add(basePos);
+                        mounts.Add(new PointF(basePos.X * 0.92f, basePos.Y * 0.92f));
+                    }
+                }
+                else if (armCount == 6 || normalized.Equals("Hexacopter", StringComparison.OrdinalIgnoreCase))
+                {
+                    float armR = r * 0.75f;
+                    for (int i = 0; i < 6; i++)
+                    {
+                        float angle = (float)(Math.PI * 2 * i / 6.0);
+                        mounts.Add(new PointF(MathF.Cos(angle) * armR, MathF.Sin(angle) * armR));
+                    }
+                }
+                else if (armCount == 8 || normalized.Equals("Octocopter", StringComparison.OrdinalIgnoreCase))
+                {
+                    float armR = r * 0.78f;
+                    for (int i = 0; i < 8; i++)
+                    {
+                        float angle = (float)(Math.PI * 2 * i / 8.0);
+                        mounts.Add(new PointF(MathF.Cos(angle) * armR, MathF.Sin(angle) * armR));
+                    }
+                }
+                else if (normalized.Equals("H", StringComparison.OrdinalIgnoreCase))
+                {
+                    float x = r * 0.85f;
+                    float y = r * 0.45f;
+                    mounts.Add(new PointF(-x, -y));
+                    mounts.Add(new PointF(x, -y));
+                    mounts.Add(new PointF(-x, y));
+                    mounts.Add(new PointF(x, y));
+                }
+                else if (normalized.Equals("Deadcat", StringComparison.OrdinalIgnoreCase))
+                {
+                    float x = r * 0.8f;
+                    mounts.Add(new PointF(-x, -r * 0.55f));
+                    mounts.Add(new PointF(x, -r * 0.55f));
+                    mounts.Add(new PointF(-x, r * 0.95f));
+                    mounts.Add(new PointF(x, r * 0.95f));
+                }
+                else if (normalized.Equals("StretchX", StringComparison.OrdinalIgnoreCase) || normalized.Equals("Stretch X", StringComparison.OrdinalIgnoreCase))
+                {
+                    float x = r * 0.75f;
+                    float y = r * 1.05f;
+                    mounts.Add(new PointF(-x, -y));
+                    mounts.Add(new PointF(x, -y));
+                    mounts.Add(new PointF(-x, y));
+                    mounts.Add(new PointF(x, y));
+                }
+                else if (normalized.Equals("FixedWing", StringComparison.OrdinalIgnoreCase))
+                {
+                    float x = r * 1.1f;
+                    mounts.Add(new PointF(-x, 0));
+                    mounts.Add(new PointF(x, 0));
+                }
+                else
+                {
+                    float armR = r / MathF.Sqrt(2f);
+                    mounts.Add(new PointF(-armR, -armR));
+                    mounts.Add(new PointF(armR, -armR));
+                    mounts.Add(new PointF(-armR, armR));
+                    mounts.Add(new PointF(armR, armR));
+                }
+
+                var def = new FrameDefinition
+                {
+                    MotorMounts = mounts.ToArray(),
+                    Size = new SizeF(wheelbaseMm, wheelbaseMm),
+                    BatteryBay = new RectangleF(-r * 0.25f, -r * 0.12f, r * 0.5f, r * 0.24f)
+                };
+                return def;
+            }
+
+            static float EstimateFrameMass(int wheelbaseMm, float armThicknessMm)
+            {
+                float baseMass = wheelbaseMm * 0.0007f;
+                float thicknessBoost = Math.Clamp(armThicknessMm / 4f, 0.7f, 2.0f);
+                return Math.Clamp(baseMass * thicknessBoost, 0.02f, 1.2f);
+            }
+
+            static float EstimateBodySize(int wheelbaseMm)
+            {
+                return Math.Clamp(wheelbaseMm * 0.22f, 35f, 140f);
+            }
+
+            static (float Diameter, float Height) ParseStator(string stator)
+            {
+                var s = stator.Trim();
+                if (s.Length < 4)
+                    return (22f, 7f);
+
+                string dStr = s.Substring(0, 2);
+                string hStr = s.Substring(2);
+                if (!float.TryParse(dStr, out var d))
+                    d = 22f;
+                if (!float.TryParse(hStr, out var h))
+                    h = 7f;
+                return (d, h);
+            }
+
+            static (float MinV, float MaxV) EstimateMotorVoltage(int kv)
+            {
+                if (kv >= 3500) return (7.4f, 14.8f);
+                if (kv >= 2200) return (11.1f, 14.8f);
+                if (kv >= 1500) return (14.8f, 22.2f);
+                if (kv >= 1000) return (22.2f, 25.2f);
+                return (22.2f, 44.4f);
+            }
+
+            static TEnum ParseEnum<TEnum>(string? value, TEnum fallback) where TEnum : struct
+            {
+                if (!string.IsNullOrWhiteSpace(value) && Enum.TryParse<TEnum>(value, true, out var parsed))
+                    return parsed;
+                return fallback;
+            }
+
+            static Color ParseColor(string value)
+            {
+                if (value.StartsWith("#", StringComparison.Ordinal))
+                    value = value[1..];
+                if (value.Length == 6)
+                {
+                    int r = Convert.ToInt32(value.Substring(0, 2), 16);
+                    int g = Convert.ToInt32(value.Substring(2, 2), 16);
+                    int b = Convert.ToInt32(value.Substring(4, 2), 16);
+                    return Color.FromArgb(255, r, g, b);
+                }
+                if (value.Length == 8)
+                {
+                    int a = Convert.ToInt32(value.Substring(0, 2), 16);
+                    int r = Convert.ToInt32(value.Substring(2, 2), 16);
+                    int g = Convert.ToInt32(value.Substring(4, 2), 16);
+                    int b = Convert.ToInt32(value.Substring(6, 2), 16);
+                    return Color.FromArgb(a, r, g, b);
+                }
+                return Color.FromArgb(200, 90, 132, 255);
+            }
+
+            sealed class CatalogRoot
+            {
+                public List<CatalogFrame> Frames { get; set; } = new();
+                public List<CatalogMotor> Motors { get; set; } = new();
+                public List<CatalogProp> Props { get; set; } = new();
+                public List<CatalogEsc> Escs { get; set; } = new();
+                public List<CatalogBattery> Batteries { get; set; } = new();
+                public List<CatalogFlightController> FlightControllers { get; set; } = new();
+                public List<CatalogReceiver> Receivers { get; set; } = new();
+                public List<CatalogCamera> Cameras { get; set; } = new();
+                public List<CatalogGps> GpsModules { get; set; } = new();
+                public List<CatalogVtx> Vtx { get; set; } = new();
+                public List<CatalogCustom> Custom { get; set; } = new();
+            }
+
+            sealed class CatalogFrame
+            {
+                public string Name { get; set; } = "";
+                public string? Style { get; set; }
+                public int WheelbaseMm { get; set; }
+                public int ArmCount { get; set; } = 4;
+                public float ArmThicknessMm { get; set; } = 4f;
+                public float BodySizeMm { get; set; }
+                public float MassKg { get; set; }
+                public bool Ducted { get; set; }
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogMotor
+            {
+                public string Name { get; set; } = "";
+                public string Stator { get; set; } = "2207";
+                public int Kv { get; set; }
+                public float MaxCurrentA { get; set; }
+                public float MaxThrustN { get; set; }
+                public float MaxRpm { get; set; }
+                public float MassKg { get; set; }
+                public float VoltageMin { get; set; }
+                public float VoltageMax { get; set; }
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogProp
+            {
+                public string Name { get; set; } = "";
+                public float DiameterInch { get; set; }
+                public float Pitch { get; set; }
+                public int BladeCount { get; set; } = 2;
+                public float MassKg { get; set; }
+                public float AerodynamicDragCoeff { get; set; }
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogEsc
+            {
+                public string Name { get; set; } = "";
+                public float ContinuousCurrent { get; set; }
+                public float BurstCurrent { get; set; }
+                public bool IsFourInOne { get; set; }
+                public string? VoltageRating { get; set; }
+                public float MassKg { get; set; }
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogBattery
+            {
+                public string Name { get; set; } = "";
+                public int Cells { get; set; }
+                public float VoltageNominal { get; set; }
+                public float CapacityAh { get; set; }
+                public float MaxDischargeC { get; set; }
+                public BatteryChemistry Chemistry { get; set; } = BatteryChemistry.LiPo;
+                public float MassKg { get; set; }
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogFlightController
+            {
+                public string Name { get; set; } = "";
+                public string Mcu { get; set; } = "F7";
+                public int UartCount { get; set; } = 6;
+                public bool HasOsd { get; set; }
+                public bool HasBlackbox { get; set; }
+                public float GyroUpdateRate { get; set; } = 8f;
+                public float MountSizeMm { get; set; } = 30.5f;
+                public string? Gyro { get; set; }
+                public bool HasBarometer { get; set; }
+                public float MassKg { get; set; } = 0.012f;
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogReceiver
+            {
+                public string Name { get; set; } = "";
+                public string Protocol { get; set; } = "ELRS";
+                public float FrequencyGhz { get; set; } = 2.4f;
+                public bool Telemetry { get; set; } = true;
+                public float MassKg { get; set; } = 0.004f;
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogCamera
+            {
+                public string Name { get; set; } = "";
+                public string Resolution { get; set; } = "1080p";
+                public float FovDeg { get; set; } = 155f;
+                public bool Stabilization { get; set; }
+                public string? FormFactor { get; set; }
+                public string? SystemType { get; set; }
+                public float MassKg { get; set; } = 0.02f;
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogGps
+            {
+                public string Name { get; set; } = "";
+                public float UpdateRateHz { get; set; } = 10f;
+                public float AccuracyM { get; set; } = 1.5f;
+                public bool HasCompass { get; set; } = true;
+                public float MassKg { get; set; } = 0.012f;
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogVtx
+            {
+                public string Name { get; set; } = "";
+                public int MaxPowerMw { get; set; } = 800;
+                public int ChannelCount { get; set; } = 40;
+                public bool HasPitMode { get; set; } = true;
+                public float MassKg { get; set; } = 0.008f;
+                public string? Description { get; set; }
+            }
+
+            sealed class CatalogCustom
+            {
+                public string Name { get; set; } = "";
+                public string? Category { get; set; }
+                public float WidthMm { get; set; } = 24f;
+                public float HeightMm { get; set; } = 16f;
+                public float DepthMm { get; set; } = 6f;
+                public float MassKg { get; set; } = 0.01f;
+                public float PowerDrawA { get; set; }
+                public float VoltageMin { get; set; } = 5f;
+                public float VoltageMax { get; set; } = 20f;
+                public string? SignalType { get; set; }
+                public string? Connector { get; set; }
+                public string? Shape { get; set; }
+                public string? Mount { get; set; }
+                public int CornerRadius { get; set; } = 6;
+                public float RotationDeg { get; set; }
+                public float Opacity { get; set; } = 1f;
+                public string? FillColor { get; set; }
+                public string? StrokeColor { get; set; }
+                public string? ImagePath { get; set; }
+                public string? Description { get; set; }
+                public List<CustomProperty>? Properties { get; set; }
             }
 
             public static void LoadAll(string rootDir)
@@ -5692,6 +8024,34 @@ void DrawViewportOverlays(Graphics g)
                 {
                     path = Path.Combine(dir, fileName + $"_{i}.svasset");
                     i++;
+                }
+
+                if (asset is CustomComponentAsset custom && !string.IsNullOrWhiteSpace(custom.ImagePath))
+                {
+                    string sourcePath = custom.ImagePath;
+                    if (!Path.IsPathRooted(sourcePath) && Paths.TryGetValue(asset.Id, out var currentAssetPath))
+                    {
+                        var currentDir = Path.GetDirectoryName(currentAssetPath);
+                        if (!string.IsNullOrWhiteSpace(currentDir))
+                            sourcePath = Path.Combine(currentDir, sourcePath);
+                    }
+
+                    if (File.Exists(sourcePath))
+                    {
+                        string imgDir = Path.Combine(dir, "images");
+                        Directory.CreateDirectory(imgDir);
+                        string ext = Path.GetExtension(sourcePath);
+                        string imgName = SanitizeFileName(custom.Name) + ext;
+                        string imgPath = Path.Combine(imgDir, imgName);
+                        int suffix = 1;
+                        while (File.Exists(imgPath))
+                        {
+                            imgPath = Path.Combine(imgDir, $"{SanitizeFileName(custom.Name)}_{suffix}{ext}");
+                            suffix++;
+                        }
+                        File.Copy(sourcePath, imgPath, overwrite: true);
+                        custom.ImagePath = Path.Combine("images", Path.GetFileName(imgPath));
+                    }
                 }
 
                 AssetIO.SaveAsset(asset, path);
@@ -5756,6 +8116,162 @@ void DrawViewportOverlays(Graphics g)
                 CancelButton = btnCancel;
                 Controls.Add(grid);
                 Controls.Add(bottom);
+
+                if (asset is CustomComponentAsset custom)
+                {
+                    var previewHost = new Panel { Dock = DockStyle.Top, Height = 170, BackColor = Color.Transparent, Padding = new Padding(0, 0, 0, 8) };
+                    var previewCanvas = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
+                    var imageButtons = new FlowLayoutPanel
+                    {
+                        Dock = DockStyle.Bottom,
+                        Height = 32,
+                        FlowDirection = FlowDirection.LeftToRight,
+                        WrapContents = false
+                    };
+
+                    var btnPickImage = new Button { Text = "Pick Image", Width = 100, Height = 26 };
+                    var btnClearImage = new Button { Text = "Clear Image", Width = 100, Height = 26 };
+                    StyleButton(btnPickImage, false);
+                    StyleButton(btnClearImage, false);
+
+                    btnPickImage.Click += (_, __) =>
+                    {
+                        using var ofd = new OpenFileDialog
+                        {
+                            Filter = "Image Files|*.png;*.jpg;*.jpeg;*.bmp;*.gif"
+                        };
+                        if (ofd.ShowDialog(this) == DialogResult.OK)
+                        {
+                            custom.ImagePath = ofd.FileName;
+                            previewCanvas.Invalidate();
+                        }
+                    };
+                    btnClearImage.Click += (_, __) =>
+                    {
+                        custom.ImagePath = "";
+                        previewCanvas.Invalidate();
+                    };
+
+                    imageButtons.Controls.Add(btnPickImage);
+                    imageButtons.Controls.Add(btnClearImage);
+
+                    previewCanvas.Paint += (_, e) =>
+                    {
+                        e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+                        var rect = previewCanvas.ClientRectangle;
+                        rect.Inflate(-16, -16);
+
+                        if (!string.IsNullOrWhiteSpace(custom.ImagePath))
+                        {
+                            var resolved = ResolveImagePath(custom, custom.ImagePath);
+                            if (!string.IsNullOrWhiteSpace(resolved) && File.Exists(resolved))
+                            {
+                                using var fs = new FileStream(resolved, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                                using var ms = new MemoryStream();
+                                fs.CopyTo(ms);
+                                ms.Position = 0;
+                                using var img = Image.FromStream(ms);
+                                e.Graphics.DrawImage(img, rect);
+                                using var border = new Pen(Color.FromArgb(140, 120, 130, 140), 1f);
+                                e.Graphics.DrawRectangle(border, rect.X, rect.Y, rect.Width, rect.Height);
+                                return;
+                            }
+                        }
+
+                        using var shapePath = BuildPreviewShape(custom.Shape, rect, custom.CornerRadius);
+                        var fillColor = Color.FromArgb(custom.FillColorArgb);
+                        var strokeColor = Color.FromArgb(custom.StrokeColorArgb);
+                        int fillAlpha = (int)Math.Clamp(fillColor.A * custom.Opacity, 0, 255);
+                        int strokeAlpha = (int)Math.Clamp(strokeColor.A * custom.Opacity, 0, 255);
+                        using var fill = new SolidBrush(Color.FromArgb(fillAlpha, fillColor));
+                        using var stroke = new Pen(Color.FromArgb(strokeAlpha, strokeColor), Math.Max(1f, custom.StrokeWidth));
+                        e.Graphics.FillPath(fill, shapePath);
+                        e.Graphics.DrawPath(stroke, shapePath);
+                    };
+
+                    grid.PropertyValueChanged += (_, __) => previewCanvas.Invalidate();
+
+                    previewHost.Controls.Add(previewCanvas);
+                    previewHost.Controls.Add(imageButtons);
+                    Controls.Add(previewHost);
+                    Controls.SetChildIndex(previewHost, 0);
+                }
+            }
+
+            string ResolveImagePath(CustomComponentAsset custom, string path)
+            {
+                if (Path.IsPathRooted(path)) return path;
+                if (AssetLibrary.Paths.TryGetValue(custom.Id, out var assetPath))
+                {
+                    var dir = Path.GetDirectoryName(assetPath);
+                    if (!string.IsNullOrWhiteSpace(dir))
+                        return Path.Combine(dir, path);
+                }
+                return path;
+            }
+
+            GraphicsPath BuildPreviewShape(CustomShape shape, Rectangle rect, float radius)
+            {
+                var r = new RectangleF(rect.X, rect.Y, rect.Width, rect.Height);
+                var path = new GraphicsPath();
+                switch (shape)
+                {
+                    case CustomShape.Circle:
+                        float size = Math.Min(r.Width, r.Height);
+                        var circle = new RectangleF(r.X + (r.Width - size) / 2f, r.Y + (r.Height - size) / 2f, size, size);
+                        path.AddEllipse(circle);
+                        break;
+                    case CustomShape.Triangle:
+                        var p1 = new PointF(r.X + r.Width / 2f, r.Y);
+                        var p2 = new PointF(r.Right, r.Bottom);
+                        var p3 = new PointF(r.X, r.Bottom);
+                        path.AddPolygon(new[] { p1, p2, p3 });
+                        break;
+                    case CustomShape.Capsule:
+                        if (r.Width >= r.Height)
+                        {
+                            var left = new RectangleF(r.X, r.Y, r.Height, r.Height);
+                            var right = new RectangleF(r.Right - r.Height, r.Y, r.Height, r.Height);
+                            path.AddArc(left, 90, 180);
+                            path.AddArc(right, 270, 180);
+                            path.CloseFigure();
+                        }
+                        else
+                        {
+                            var top = new RectangleF(r.X, r.Y, r.Width, r.Width);
+                            var bottom = new RectangleF(r.X, r.Bottom - r.Width, r.Width, r.Width);
+                            path.AddArc(top, 180, 180);
+                            path.AddArc(bottom, 0, 180);
+                            path.CloseFigure();
+                        }
+                        break;
+                    case CustomShape.RoundedRect:
+                        return BuildRoundedPreview(r, Math.Max(1f, radius));
+                    default:
+                        path.AddRectangle(r);
+                        break;
+                }
+                return path;
+            }
+
+            GraphicsPath BuildRoundedPreview(RectangleF rect, float radius)
+            {
+                var path = new GraphicsPath();
+                if (rect.Width <= 0 || rect.Height <= 0)
+                {
+                    path.AddRectangle(rect);
+                    return path;
+                }
+
+                radius = Math.Min(radius, Math.Min(rect.Width, rect.Height) / 2f);
+                float diameter = radius * 2f;
+
+                path.AddArc(rect.X, rect.Y, diameter, diameter, 180, 90);
+                path.AddArc(rect.Right - diameter, rect.Y, diameter, diameter, 270, 90);
+                path.AddArc(rect.Right - diameter, rect.Bottom - diameter, diameter, diameter, 0, 90);
+                path.AddArc(rect.X, rect.Bottom - diameter, diameter, diameter, 90, 90);
+                path.CloseFigure();
+                return path;
             }
 
             void StyleButton(Button button, bool primary)
@@ -6222,6 +8738,10 @@ void DrawViewportOverlays(Graphics g)
 
         string GetPartInfo(string category, string name)
         {
+            var asset = AssetLibrary.GetByCategory(category).FirstOrDefault(a => a.Name == name);
+            if (asset is CustomComponentAsset customAsset)
+                return BuildCustomComponentInfo(customAsset);
+
             if (category == "Motors")
             {
                 return $"{name}\nThrust: {PhysicsDatabase.GetMaxThrust(name)} N\nHover Current: {PhysicsDatabase.GetCurrentDraw(name)} A\nMass: {PhysicsDatabase.MotorMass(name)} kg";
@@ -6232,7 +8752,7 @@ void DrawViewportOverlays(Graphics g)
                 if (battery != null)
                 {
                     return $"{name}\nVoltage: {battery.VoltageNominal:0.0}V\nCapacity: {battery.CapacityAh:0.0}Ah\n" +
-                           $"Chemistry: {battery.Chemistry}\nMass: {battery.MassKg:0.###} kg";
+                           $"Chemistry: {battery.Chemistry}\nC Rating: {battery.MaxDischargeC:0}C\nMass: {battery.MassKg:0.###} kg";
                 }
                 return $"{name}\nMass: {PhysicsDatabase.BatteryMass()} kg";
             }
@@ -6246,14 +8766,14 @@ void DrawViewportOverlays(Graphics g)
             {
                 var esc = AssetLibrary.FindByName(name) as ESCAsset;
                 if (esc != null)
-                    return $"{name}\nCurrent: {esc.ContinuousCurrent:0}A\nBurst: {esc.BurstCurrent:0}A\nMass: {esc.MassKg:0.###} kg";
+                    return $"{name}\nCurrent: {esc.ContinuousCurrent:0}A\nBurst: {esc.BurstCurrent:0}A\nVoltage: {esc.VoltageRating}\nMass: {esc.MassKg:0.###} kg";
                 return $"{name}\nMass: {PhysicsDatabase.EscMass()} kg";
             }
             else if (category == "FC")
             {
                 var fc = AssetLibrary.FindByName(name) as FlightControllerAsset;
                 if (fc != null)
-                    return $"{name}\nMCU: {fc.MCU}\nUARTs: {fc.UARTCount}\nMass: {fc.MassKg:0.###} kg";
+                    return $"{name}\nMCU: {fc.MCU}\nMount: {fc.MountSizeMm:0.0}mm\nGyro: {fc.Gyro}\nUARTs: {fc.UARTCount}\nMass: {fc.MassKg:0.###} kg";
                 return $"{name}\nMass: {PhysicsDatabase.FcMass()} kg";
             }
             else if (category == "Props")
@@ -6267,7 +8787,7 @@ void DrawViewportOverlays(Graphics g)
             {
                 var cam = AssetLibrary.FindByName(name) as CameraAsset;
                 if (cam != null)
-                    return $"{name}\nResolution: {cam.Resolution}\nFOV: {cam.FovDeg:0}°\nMass: {cam.MassKg:0.###} kg";
+                    return $"{name}\nType: {cam.SystemType}\nForm: {cam.FormFactor}\nResolution: {cam.Resolution}\nFOV: {cam.FovDeg:0}°\nMass: {cam.MassKg:0.###} kg";
                 return name;
             }
             else if (category == "Receivers")
@@ -6312,7 +8832,43 @@ void DrawViewportOverlays(Graphics g)
                     return $"{name}\nLEDs: {led.LedCount}\nColor: {led.Color}\nMass: {led.MassKg:0.###} kg";
                 return name;
             }
+            else if (category == "Custom")
+            {
+                var custom = AssetLibrary.FindByName(name) as CustomComponentAsset;
+                if (custom != null)
+                    return BuildCustomComponentInfo(custom);
+                return name;
+            }
             return name;
+        }
+
+        string BuildCustomComponentInfo(CustomComponentAsset custom)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(custom.Name);
+            sb.AppendLine($"Size: {custom.WidthMm:0} x {custom.HeightMm:0} x {custom.DepthMm:0} mm");
+            if (custom.PowerDrawA > 0f)
+                sb.AppendLine($"Power Draw: {custom.PowerDrawA:0.##} A");
+            if (custom.VoltageMin > 0f || custom.VoltageMax > 0f)
+                sb.AppendLine($"Voltage: {custom.VoltageMin:0.0} - {custom.VoltageMax:0.0} V");
+            if (custom.Mount != MountType.None)
+                sb.AppendLine($"Mount: {custom.Mount}");
+            if (!string.IsNullOrWhiteSpace(custom.SignalType))
+                sb.AppendLine($"Signal: {custom.SignalType}");
+            if (!string.IsNullOrWhiteSpace(custom.Connector))
+                sb.AppendLine($"Connector: {custom.Connector}");
+            if (custom.Properties.Count > 0)
+            {
+                int shown = 0;
+                foreach (var prop in custom.Properties)
+                {
+                    if (shown >= 3) break;
+                    var unit = string.IsNullOrWhiteSpace(prop.Unit) ? "" : $" {prop.Unit}";
+                    sb.AppendLine($"{prop.Name}: {prop.Value}{unit}");
+                    shown++;
+                }
+            }
+            return sb.ToString().TrimEnd();
         }
 
         string GetPlacedPartInfo(PlacedInstance p)
@@ -6335,6 +8891,7 @@ void DrawViewportOverlays(Graphics g)
                     sb.AppendLine($"Voltage: {battery.VoltageNominal:0.0}V");
                     sb.AppendLine($"Capacity: {battery.CapacityAh:0.0}Ah");
                     sb.AppendLine($"Chemistry: {battery.Chemistry}");
+                    sb.AppendLine($"C Rating: {battery.MaxDischargeC:0}C");
                     sb.AppendLine($"Mass: {battery.MassKg:0.###} kg");
                 }
                 else
@@ -6350,11 +8907,14 @@ void DrawViewportOverlays(Graphics g)
             {
                 sb.AppendLine($"Current: {esc.ContinuousCurrent:0}A");
                 sb.AppendLine($"Burst: {esc.BurstCurrent:0}A");
+                sb.AppendLine($"Voltage: {esc.VoltageRating}");
                 sb.AppendLine($"Mass: {esc.MassKg:0.###} kg");
             }
             else if (p.Type == PartType.FlightController && asset is FlightControllerAsset fc)
             {
                 sb.AppendLine($"MCU: {fc.MCU}");
+                sb.AppendLine($"Mount: {fc.MountSizeMm:0.0}mm");
+                sb.AppendLine($"Gyro: {fc.Gyro}");
                 sb.AppendLine($"UARTs: {fc.UARTCount}");
                 sb.AppendLine($"Mass: {fc.MassKg:0.###} kg");
             }
@@ -6364,6 +8924,8 @@ void DrawViewportOverlays(Graphics g)
             }
             else if (p.Type == PartType.Camera && asset is CameraAsset cam)
             {
+                sb.AppendLine($"Type: {cam.SystemType}");
+                sb.AppendLine($"Form: {cam.FormFactor}");
                 sb.AppendLine($"Resolution: {cam.Resolution}");
                 sb.AppendLine($"FOV: {cam.FovDeg:0}°");
                 sb.AppendLine($"Mass: {cam.MassKg:0.###} kg");
@@ -6402,6 +8964,28 @@ void DrawViewportOverlays(Graphics g)
                 sb.AppendLine($"LEDs: {led.LedCount}");
                 sb.AppendLine($"Color: {led.Color}");
                 sb.AppendLine($"Mass: {led.MassKg:0.###} kg");
+            }
+            else if (p.Type == PartType.CustomComponent && asset is CustomComponentAsset custom)
+            {
+                sb.AppendLine($"Size: {custom.WidthMm:0} x {custom.HeightMm:0} x {custom.DepthMm:0} mm");
+                if (custom.PowerDrawA > 0f)
+                    sb.AppendLine($"Power Draw: {custom.PowerDrawA:0.##} A");
+                if (custom.VoltageMin > 0f || custom.VoltageMax > 0f)
+                    sb.AppendLine($"Voltage: {custom.VoltageMin:0.0} - {custom.VoltageMax:0.0} V");
+                if (custom.Mount != MountType.None)
+                    sb.AppendLine($"Mount: {custom.Mount}");
+                if (!string.IsNullOrWhiteSpace(custom.SignalType))
+                    sb.AppendLine($"Signal: {custom.SignalType}");
+                if (!string.IsNullOrWhiteSpace(custom.Connector))
+                    sb.AppendLine($"Connector: {custom.Connector}");
+                if (custom.Properties.Count > 0)
+                {
+                    foreach (var customProp in custom.Properties)
+                    {
+                        var unit = string.IsNullOrWhiteSpace(customProp.Unit) ? "" : $" {customProp.Unit}";
+                        sb.AppendLine($"{customProp.Name}: {customProp.Value}{unit}");
+                    }
+                }
             }
             sb.AppendLine($"Position: {p.Position.X:0},{p.Position.Y:0}");
             return sb.ToString();
@@ -6642,12 +9226,38 @@ void DrawViewportOverlays(Graphics g)
             });
             return true;
         }
+
+        bool AddCustomComponent(PointF mousePos, string name, string? assetId = null)
+        {
+            if (project == null) return false;
+            if (!HasFrame()) return false;
+            CustomComponentAsset? asset = null;
+            if (!string.IsNullOrWhiteSpace(assetId))
+                asset = AssetLibrary.Get(assetId) as CustomComponentAsset;
+            asset ??= AssetLibrary.FindByName(name) as CustomComponentAsset;
+            if (asset == null) return false;
+
+            if (asset.Mount != MountType.None)
+            {
+                if (TryPlaceAsset(asset, mousePos))
+                    return true;
+                return false;
+            }
+
+            project.Instances.Add(new PlacedInstance
+            {
+                AssetId = asset.Id,
+                Type = PartType.CustomComponent,
+                Position = mousePos
+            });
+            return true;
+        }
 bool TryPlaceAsset(Asset asset, PointF mouse)
 {
     var frame = GetFrameAsset();
     if (frame == null) return false;
 
-    if (asset.RequiredMount == MountType.Propeller)
+    if (asset is not CustomComponentAsset && asset.RequiredMount == MountType.Propeller)
     {
         int mount = FindNearestMount(mouse);
         if (mount == -1) return false;
@@ -6855,7 +9465,16 @@ bool TryPlaceAsset(Asset asset, PointF mouse)
             if (frameAsset == null) return;
             int mountIndex = frameAsset.Mounts.IndexOf(mount);
 
-            if (asset.RequiredMount == MountType.Motor)
+            if (asset is CustomComponentAsset)
+            {
+                project.Instances.Add(new PlacedInstance
+                {
+                    AssetId = asset.Id,
+                    Type = PartType.CustomComponent,
+                    Position = FrameToWorld(mount.Position)
+                });
+            }
+            else if (asset.RequiredMount == MountType.Motor)
             {
                 int motorIndex = FindMountIndexByPosition(GetMotorMounts(frameAsset), mount.Position);
                 if (motorIndex < 0) return;
@@ -6981,7 +9600,6 @@ bool TryPlaceAsset(Asset asset, PointF mouse)
                     Position = FrameToWorld(mount.Position)
                 });
             }
-
             OnProjectStructureChanged();
         }
 
@@ -7051,6 +9669,31 @@ bool TryPlaceAsset(Asset asset, PointF mouse)
             }
 
             return p.Position;
+        }
+
+        PointF ScreenToWorld(Point screenPos)
+        {
+            return ScreenToWorld(screenPos, zoomFactor);
+        }
+
+        PointF ScreenToWorld(Point screenPos, float zoom)
+        {
+            if (!viewportIs3D)
+            {
+                return new PointF(
+                    (screenPos.X - viewOffset.X) / zoom,
+                    (screenPos.Y - viewOffset.Y) / zoom
+                );
+            }
+
+            float localX = (screenPos.X - viewOffset.X) / zoom;
+            float localY = (screenPos.Y - viewOffset.Y) / zoom;
+            float ix = 0.866f;
+            float iy = 0.5f;
+            float x = (localX / ix + localY / iy) * 0.5f;
+            float y = (localY / iy - localX / ix) * 0.5f;
+            var rotated = new PointF(x, y);
+            return ApplyViewRotation(rotated, -viewRotation);
         }
 
         void ResetPhysicsState()
