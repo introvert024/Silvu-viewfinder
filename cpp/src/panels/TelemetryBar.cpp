@@ -1,42 +1,13 @@
 #include "TelemetryBar.h"
+#include "../data/DroneAssembly.h"
+#include "../data/DroneComponent.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QLabel>
-#include <QProgressBar>
 #include <QGridLayout>
+#include <QFrame>
 
-static QWidget* makeMetricBar(const QString &title, const QString &value, const QString &color, int percent)
-{
-    auto *w = new QWidget();
-    auto *layout = new QVBoxLayout(w);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(4);
-
-    auto *labelRow = new QHBoxLayout();
-    auto *name = new QLabel(title);
-    name->setStyleSheet("font-size: 11px; font-weight: bold; color: #cbd5e1;");
-    auto *val = new QLabel(value);
-    val->setStyleSheet(QString("font-size: 11px; font-weight: bold; color: %1; font-family: Consolas, monospace;").arg(color));
-    labelRow->addWidget(name);
-    labelRow->addStretch();
-    labelRow->addWidget(val);
-    layout->addLayout(labelRow);
-
-    auto *bar = new QProgressBar();
-    bar->setValue(percent);
-    bar->setTextVisible(false);
-    bar->setFixedHeight(4);
-    bar->setStyleSheet(QString(
-        "QProgressBar { background: #1e2d33; border: none; border-radius: 2px; }"
-        "QProgressBar::chunk { background: %1; border-radius: 2px; }"
-    ).arg(color));
-    layout->addWidget(bar);
-
-    return w;
-}
-
-TelemetryBar::TelemetryBar(QWidget *parent)
-    : QWidget(parent)
+TelemetryBar::TelemetryBar(DroneAssembly *assembly, QWidget *parent)
+    : QWidget(parent), m_assembly(assembly)
 {
     setStyleSheet("background: #162228; border-top: 1px solid #1e2d33;");
 
@@ -55,17 +26,44 @@ TelemetryBar::TelemetryBar(QWidget *parent)
     headerRow->addWidget(rate);
     mainLayout->addLayout(headerRow);
 
-    // Metrics + Inertia row
     auto *bodyRow = new QHBoxLayout();
     bodyRow->setSpacing(32);
 
-    // Metric bars
+    // Helper to make metric bar
+    auto makeMetricWidget = [&](const QString &label, QLabel **valLabel, QProgressBar **bar, const QString &color) {
+        auto *w = new QWidget();
+        auto *layout = new QVBoxLayout(w);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->setSpacing(4);
+
+        auto *labelRow = new QHBoxLayout();
+        auto *name = new QLabel(label);
+        name->setStyleSheet("font-size: 11px; font-weight: bold; color: #cbd5e1;");
+        *valLabel = new QLabel("0");
+        (*valLabel)->setStyleSheet(QString("font-size: 11px; font-weight: bold; color: %1; font-family: Consolas, monospace;").arg(color));
+        labelRow->addWidget(name);
+        labelRow->addStretch();
+        labelRow->addWidget(*valLabel);
+        layout->addLayout(labelRow);
+
+        *bar = new QProgressBar();
+        (*bar)->setValue(0);
+        (*bar)->setTextVisible(false);
+        (*bar)->setFixedHeight(4);
+        (*bar)->setStyleSheet(QString(
+            "QProgressBar { background: #1e2d33; border: none; border-radius: 2px; }"
+            "QProgressBar::chunk { background: %1; border-radius: 2px; }"
+        ).arg(color));
+        layout->addWidget(*bar);
+        return w;
+    };
+
     auto *metricsWidget = new QWidget();
     auto *metricsLayout = new QHBoxLayout(metricsWidget);
     metricsLayout->setSpacing(24);
-    metricsLayout->addWidget(makeMetricBar("Voltage (V)", "24.8V", "#10b981", 85));
-    metricsLayout->addWidget(makeMetricBar("Current (A)", "12.4A", "#f97316", 45));
-    metricsLayout->addWidget(makeMetricBar("Motor RPM", "12,400", "#f04242", 65));
+    metricsLayout->addWidget(makeMetricWidget("Total Mass (g)", &m_massVal, &m_massBar, "#10b981"));
+    metricsLayout->addWidget(makeMetricWidget("Total Thrust (g)", &m_thrustVal, &m_thrustBar, "#f97316"));
+    metricsLayout->addWidget(makeMetricWidget("Battery (V)", &m_voltageVal, &m_voltageBar, "#e61414"));
     bodyRow->addWidget(metricsWidget, 1);
 
     // Separator
@@ -91,33 +89,66 @@ TelemetryBar::TelemetryBar(QWidget *parent)
     inertiaHeader->addWidget(inertiaUnit);
     inertiaLayout->addLayout(inertiaHeader);
 
-    // 3x3 matrix grid
     auto *grid = new QGridLayout();
     grid->setSpacing(6);
 
-    auto makeCell = [](const QString &val, bool isDiagonal) {
-        auto *l = new QLabel(val);
-        l->setAlignment(Qt::AlignCenter);
-        l->setStyleSheet(QString("font-size: 12px; font-weight: bold; font-family: Consolas, monospace; color: %1;")
-            .arg(isDiagonal ? "#e61414" : "#f1f5f9"));
-        return l;
-    };
-
-    // Row 0
-    grid->addWidget(makeCell("0.012", true), 0, 0);
-    grid->addWidget(makeCell("0.000", false), 0, 1);
-    grid->addWidget(makeCell("0.000", false), 0, 2);
-    // Row 1
-    grid->addWidget(makeCell("0.000", false), 1, 0);
-    grid->addWidget(makeCell("0.015", true), 1, 1);
-    grid->addWidget(makeCell("0.000", false), 1, 2);
-    // Row 2
-    grid->addWidget(makeCell("0.000", false), 2, 0);
-    grid->addWidget(makeCell("0.000", false), 2, 1);
-    grid->addWidget(makeCell("0.024", true), 2, 2);
+    for (int r = 0; r < 3; r++) {
+        for (int c = 0; c < 3; c++) {
+            m_inertia[r][c] = new QLabel("0.000");
+            m_inertia[r][c]->setAlignment(Qt::AlignCenter);
+            bool isDiag = (r == c);
+            m_inertia[r][c]->setStyleSheet(QString("font-size: 12px; font-weight: bold; font-family: Consolas, monospace; color: %1;")
+                .arg(isDiag ? "#e61414" : "#64748b"));
+            grid->addWidget(m_inertia[r][c], r, c);
+        }
+    }
 
     inertiaLayout->addLayout(grid);
     bodyRow->addWidget(inertiaWidget);
 
     mainLayout->addLayout(bodyRow);
+}
+
+void TelemetryBar::refreshUI()
+{
+    if (!m_assembly) return;
+
+    float mass = m_assembly->getTotalMass();
+    float thrust = m_assembly->getTotalThrust();
+
+    m_massVal->setText(QString("%1g").arg(mass, 0, 'f', 1));
+    m_massBar->setValue(qMin(100, (int)(mass / 10.0f))); // Scale: 1000g = 100%
+
+    m_thrustVal->setText(QString("%1g").arg(thrust, 0, 'f', 0));
+    m_thrustBar->setValue(qMin(100, (int)(thrust / 80.0f))); // Scale: 8000g = 100%
+
+    // Check for battery voltage
+    float voltage = 0;
+    for (const auto &node : m_assembly->getSnapNodes()) {
+        if (node.attachedComponent && node.attachedComponent->getType() == ComponentType::Battery) {
+            auto batt = std::static_pointer_cast<BatteryComponent>(node.attachedComponent);
+            voltage = batt->getVoltage();
+        }
+    }
+    m_voltageVal->setText(voltage > 0 ? QString("%1V").arg(voltage, 0, 'f', 1) : "0V");
+    m_voltageBar->setValue(qMin(100, (int)(voltage / 0.25f))); // Scale: 25V = 100%
+
+    // Simple inertia estimation (I = m * r^2 for point masses)
+    float Ixx = 0, Iyy = 0, Izz = 0;
+    for (const auto &node : m_assembly->getSnapNodes()) {
+        if (node.attachedComponent) {
+            float m = node.attachedComponent->getMassGraph() / 1000.0f; // grams to kg
+            float x = node.localPosition.x;
+            float y = node.localPosition.y;
+            float z = node.localPosition.z;
+            Ixx += m * (y * y + z * z);
+            Iyy += m * (x * x + z * z);
+            Izz += m * (x * x + y * y);
+        }
+    }
+
+    m_inertia[0][0]->setText(QString::number(Ixx, 'f', 3));
+    m_inertia[1][1]->setText(QString::number(Iyy, 'f', 3));
+    m_inertia[2][2]->setText(QString::number(Izz, 'f', 3));
+    // Off-diagonal remain 0.000
 }

@@ -1,13 +1,12 @@
 #pragma once
 
 #include "DroneComponent.h"
-#include <map>
-#include <memory>
+#include <string>
 #include <vector>
+#include <memory>
 
-// Forward declaration if necessary
-class DroneComponent; 
-class Vector3D;
+class DroneComponent;
+struct Vector3D; // Defined in component header
 
 // Represents a node where a component can be attached dynamically inside the framework
 struct SnapNode {
@@ -17,7 +16,7 @@ struct SnapNode {
     std::shared_ptr<DroneComponent> attachedComponent;
 
     SnapNode(std::string id_, Vector3D pos, ComponentType accepts)
-        : id(id_), localPosition(pos), acceptedType(accepts), attachedComponent(nullptr) {}
+        : id(std::move(id_)), localPosition(pos), acceptedType(accepts), attachedComponent(nullptr) {}
 };
 
 class DroneAssembly {
@@ -40,6 +39,7 @@ public:
     float getTotalThrust() const;
     float getThrustToWeightRatio() const;
     float getHoverThrottle() const;
+    InertiaTensor getInertiaTensor() const;
 
 private:
     std::shared_ptr<DroneComponent> m_frame;

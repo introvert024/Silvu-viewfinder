@@ -3,10 +3,21 @@
 #include <QFontDatabase>
 #include <QPalette>
 #include <QStyleFactory>
+#include <QSurfaceFormat>
 #include "MainWindow.h"
 
 int main(int argc, char *argv[])
 {
+    // Force hardware-accelerated OpenGL with sensible defaults
+    QSurfaceFormat fmt;
+    fmt.setDepthBufferSize(24);
+    fmt.setStencilBufferSize(8);
+    fmt.setSamples(4);             // 4x MSAA anti-aliasing
+    fmt.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
+    fmt.setSwapInterval(1);        // VSync — prevents tearing and CPU spin
+    fmt.setRenderableType(QSurfaceFormat::OpenGL);
+    QSurfaceFormat::setDefaultFormat(fmt);
+
     QApplication app(argc, argv);
     app.setApplicationName("Silvu Viewfinder");
     app.setOrganizationName("Silvu");

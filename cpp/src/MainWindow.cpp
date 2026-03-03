@@ -5,6 +5,7 @@
 #include "panels/ConfigPanel.h"
 #include "panels/ProtocolPanel.h"
 #include "panels/TelemetryBar.h"
+#include "panels/ToolRibbon.h"
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -15,15 +16,17 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    // Allow full vertical and horizontal resize
+    setMinimumSize(800, 500);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
     createMenuBar();
     createTabs();
     createBuildMode();
     createStatusBar();
 
-    // Connect tab switching
     connect(m_tabBar, &QTabWidget::currentChanged, this, &MainWindow::onTabChanged);
 
-    // Default to Build tab
     m_tabBar->setCurrentIndex(0);
     onTabChanged(0);
 }
@@ -64,7 +67,6 @@ void MainWindow::createMenuBar()
 
 void MainWindow::createTabs()
 {
-    // Create tab bar (header) + stacked widget (body)
     auto *centralWidget = new QWidget(this);
     auto *layout = new QVBoxLayout(centralWidget);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -74,12 +76,9 @@ void MainWindow::createTabs()
     m_tabBar->setTabPosition(QTabWidget::North);
     m_tabBar->setDocumentMode(true);
 
-    // Create pages
     m_buildPage = new QWidget();
     m_configPage = new ConfigPanel();
-    m_protocolPage = new ProtocolPanel();
 
-    // Stub pages for other tabs
     auto makeStub = [](const QString &name) {
         auto *w = new QWidget();
         auto *l = new QVBoxLayout(w);
@@ -94,9 +93,7 @@ void MainWindow::createTabs()
     m_tabBar->addTab(m_configPage, "CONFIG");
     m_tabBar->addTab(makeStub("Simulation"), "SIMULATION");
     m_tabBar->addTab(makeStub("Debug"), "DEBUG");
-    m_tabBar->addTab(makeStub("Software"), "SOFTWARE");
     m_tabBar->addTab(makeStub("Testing"), "TESTING");
-    m_tabBar->addTab(m_protocolPage, "PROTOCOLS");
     m_tabBar->addTab(makeStub("Telemetry"), "TELEMETRY");
 
     setCentralWidget(m_tabBar);
@@ -104,48 +101,87 @@ void MainWindow::createTabs()
 
 void MainWindow::createBuildMode()
 {
-    // The Build page has a horizontal splitter with left/center/right
-    auto *layout = new QHBoxLayout(m_buildPage);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
+    // Outer vertical: Ribbon on top, then content below
+    auto *outerLayout = new QVBoxLayout(m_buildPage);
+    outerLayout->setContentsMargins(0, 0, 0, 0);
+    outerLayout->setSpacing(0);
+    m_buildPage->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-    // Left dock: Build Panel
-    m_buildPanel = new BuildPanel(this);
+    // Tool Ribbon — full width across entire build page
+    m_toolRibbon = new ToolRibbon(&m_assembly, m_buildPage);
+    m_toolRibbon->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    outerLayout->addWidget(m_toolRibbon, 0);
+
+    // Content area: left panel + center + right panel
+    auto *contentWidget = new QWidget(m_buildPage);
+    contentWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    auto *contentLayout = new QHBoxLayout(contentWidget);
+    contentLayout->setContentsMargins(0, 0, 0, 0);
+    contentLayout->setSpacing(0);
+
+    // Left: Build Panel
+    m_buildPanel = new BuildPanel(&m_assembly, contentWidget);
     m_buildPanel->setFixedWidth(300);
+    m_buildPanel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
-    // Center: Viewport + bottom telemetry bar
-    auto *centerWidget = new QWidget();
+    // Center: Viewport + Telemetry
+    auto *centerWidget = new QWidget(contentWidget);
+    centerWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     auto *centerLayout = new QVBoxLayout(centerWidget);
     centerLayout->setContentsMargins(0, 0, 0, 0);
     centerLayout->setSpacing(0);
 
     m_viewport = new ViewportWidget(centerWidget);
-    m_telemetryBar = new TelemetryBar(centerWidget);
-    m_telemetryBar->setFixedHeight(130);
+    m_viewport->setAssembly(&m_assembly);
+    m_viewport->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_viewport->setMinimumSize(200, 150);
+
+    m_toolRibbon->setViewport(m_viewport);
+
+    m_telemetryBar = new TelemetryBar(&m_assembly, centerWidget);
+    m_telemetryBar->setFixedHeight(120);
+    m_telemetryBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
     centerLayout->addWidget(m_viewport, 1);
-    centerLayout->addWidget(m_telemetryBar);
+    centerLayout->addWidget(m_telemetryBar, 0);
 
-    // Right dock: Diagnostics Panel
-    m_diagPanel = new DiagPanel(this);
+    // Right: Diagnostics Panel
+    m_diagPanel = new DiagPanel(&m_assembly, contentWidget);
     m_diagPanel->setFixedWidth(300);
+    m_diagPanel->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 
-    layout->addWidget(m_buildPanel);
-    layout->addWidget(centerWidget, 1);
-    layout->addWidget(m_diagPanel);
+    contentLayout->addWidget(m_buildPanel, 0);
+    contentLayout->addWidget(centerWidget, 1);
+    contentLayout->addWidget(m_diagPanel, 0);
+
+    outerLayout->addWidget(contentWidget, 1);
+
+    // Connect signals
+    connect(m_buildPanel, &BuildPanel::assemblyChanged, this, &MainWindow::onAssemblyChanged);
+    connect(m_viewport, &ViewportWidget::componentDropped, this, &MainWindow::onAssemblyChanged);
+    connect(m_toolRibbon, &ToolRibbon::assemblyChanged, this, &MainWindow::onAssemblyChanged);
+}
+
+void MainWindow::onAssemblyChanged()
+{
+    m_buildPanel->refreshUI();
+    m_diagPanel->refreshUI();
+    m_telemetryBar->refreshUI();
+    m_viewport->refreshView();
+    if (m_toolRibbon) m_toolRibbon->refreshState();
 }
 
 void MainWindow::createStatusBar()
 {
     auto *status = statusBar();
 
-    auto *linkLabel = new QLabel("● FC CONNECTED: MATEKH743");
-    linkLabel->setStyleSheet("color: #22c55e; padding: 0 12px;");
+    auto *linkLabel = new QLabel("● FC DISCONNECTED");
+    linkLabel->setStyleSheet("color: #64748b; padding: 0 12px;");
 
-    auto *cpuLabel = new QLabel("CPU LOAD: 14%");
+    auto *cpuLabel = new QLabel("CPU LOAD: --");
     cpuLabel->setStyleSheet("padding: 0 12px;");
 
-    auto *battLabel = new QLabel("BATT: 16.4V");
+    auto *battLabel = new QLabel("BATT: --");
     battLabel->setStyleSheet("padding: 0 12px;");
 
     auto *fwLabel = new QLabel("FIRMWARE: VIEWFINDER v4.2.0");
@@ -160,5 +196,4 @@ void MainWindow::createStatusBar()
 void MainWindow::onTabChanged(int index)
 {
     Q_UNUSED(index);
-    // Tab switching is handled by QTabWidget automatically
 }

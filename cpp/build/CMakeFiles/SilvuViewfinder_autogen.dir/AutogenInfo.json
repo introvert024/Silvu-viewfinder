@@ -321,6 +321,30 @@
 			null
 		],
 		[
+			"D:/Silvu-viewfinder/cpp/src/data/ComponentRegistry.h",
+			"MU",
+			"SG3YC7EIDC/moc_ComponentRegistry.cpp",
+			null
+		],
+		[
+			"D:/Silvu-viewfinder/cpp/src/data/DroneAssembly.h",
+			"MU",
+			"SG3YC7EIDC/moc_DroneAssembly.cpp",
+			null
+		],
+		[
+			"D:/Silvu-viewfinder/cpp/src/data/DroneComponent.h",
+			"MU",
+			"SG3YC7EIDC/moc_DroneComponent.cpp",
+			null
+		],
+		[
+			"D:/Silvu-viewfinder/cpp/src/dialogs/ComponentCatalog.h",
+			"MU",
+			"RGRURCYE3Z/moc_ComponentCatalog.cpp",
+			null
+		],
+		[
 			"D:/Silvu-viewfinder/cpp/src/panels/BuildPanel.h",
 			"MU",
 			"WA6XZA3RFV/moc_BuildPanel.cpp",
@@ -348,6 +372,12 @@
 			"D:/Silvu-viewfinder/cpp/src/panels/TelemetryBar.h",
 			"MU",
 			"WA6XZA3RFV/moc_TelemetryBar.cpp",
+			null
+		],
+		[
+			"D:/Silvu-viewfinder/cpp/src/panels/ToolRibbon.h",
+			"MU",
+			"WA6XZA3RFV/moc_ToolRibbon.cpp",
 			null
 		],
 		[
@@ -527,12 +557,21 @@
 	[
 		[ "D:/Silvu-viewfinder/cpp/src/MainWindow.cpp", "MU", null ],
 		[ "D:/Silvu-viewfinder/cpp/src/ViewportWidget.cpp", "MU", null ],
+		[ "D:/Silvu-viewfinder/cpp/src/data/ComponentRegistry.cpp", "MU", null ],
+		[ "D:/Silvu-viewfinder/cpp/src/data/DroneAssembly.cpp", "MU", null ],
+		[ "D:/Silvu-viewfinder/cpp/src/data/DroneComponent.cpp", "MU", null ],
+		[
+			"D:/Silvu-viewfinder/cpp/src/dialogs/ComponentCatalog.cpp",
+			"MU",
+			null
+		],
 		[ "D:/Silvu-viewfinder/cpp/src/main.cpp", "MU", null ],
 		[ "D:/Silvu-viewfinder/cpp/src/panels/BuildPanel.cpp", "MU", null ],
 		[ "D:/Silvu-viewfinder/cpp/src/panels/ConfigPanel.cpp", "MU", null ],
 		[ "D:/Silvu-viewfinder/cpp/src/panels/DiagPanel.cpp", "MU", null ],
 		[ "D:/Silvu-viewfinder/cpp/src/panels/ProtocolPanel.cpp", "MU", null ],
 		[ "D:/Silvu-viewfinder/cpp/src/panels/TelemetryBar.cpp", "MU", null ],
+		[ "D:/Silvu-viewfinder/cpp/src/panels/ToolRibbon.cpp", "MU", null ],
 		[ "D:/Silvu-viewfinder/cpp/src/physics/PhysicsEngine.cpp", "MU", null ]
 	],
 	"UIC_OPTIONS" : [],

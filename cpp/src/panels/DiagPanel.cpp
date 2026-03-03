@@ -1,121 +1,214 @@
 #include "DiagPanel.h"
+#include "../data/DroneAssembly.h"
+#include "../data/DroneComponent.h"
 #include <QVBoxLayout>
-#include <QLabel>
-#include <QTextEdit>
+#include <QHBoxLayout>
 #include <QGridLayout>
 #include <QProgressBar>
+#include <QFrame>
+#include <QScrollArea>
+#include <cmath>
 
-DiagPanel::DiagPanel(QWidget *parent)
-    : QWidget(parent)
+DiagPanel::DiagPanel(DroneAssembly *assembly, QWidget *parent)
+    : QWidget(parent), m_assembly(assembly)
 {
-    auto *layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 0, 0, 0);
-    layout->setSpacing(0);
+    auto *outerLayout = new QVBoxLayout(this);
+    outerLayout->setContentsMargins(0, 0, 0, 0);
+    outerLayout->setSpacing(0);
     setStyleSheet("background: #162228; border-left: 1px solid #1e2d33;");
 
-    // Header
-    auto *header = new QWidget();
-    auto *hLayout = new QVBoxLayout(header);
-    hLayout->setContentsMargins(16, 16, 16, 16);
-    auto *sectionLabel = new QLabel("HEALTH & DIAGNOSTICS");
-    sectionLabel->setStyleSheet("font-size: 10px; font-weight: bold; color: #e61414; letter-spacing: 2px;");
-    auto *title = new QLabel("Calculated Metrics");
-    title->setStyleSheet("font-size: 15px; font-weight: bold; color: #f1f5f9;");
-    hLayout->addWidget(sectionLabel);
-    hLayout->addWidget(title);
-    layout->addWidget(header);
+    auto *scroll = new QScrollArea();
+    scroll->setWidgetResizable(true);
+    scroll->setStyleSheet("QScrollArea{border:none;background:transparent}"
+        "QScrollBar:vertical{background:#111a1f;width:5px}"
+        "QScrollBar::handle:vertical{background:#1e2d33;border-radius:2px;min-height:16px}"
+        "QScrollBar::add-line:vertical,QScrollBar::sub-line:vertical{height:0}");
 
-    // Content area with scroll
     auto *content = new QWidget();
-    auto *cLayout = new QVBoxLayout(content);
-    cLayout->setContentsMargins(16, 0, 16, 16);
-    cLayout->setSpacing(16);
+    auto *layout = new QVBoxLayout(content);
+    layout->setContentsMargins(14, 14, 14, 14);
+    layout->setSpacing(10);
 
-    // Thrust Dynamics Section
-    auto *thrustTitle = new QLabel("THRUST DYNAMICS");
-    thrustTitle->setStyleSheet("font-size: 10px; font-weight: bold; color: #64748b; letter-spacing: 2px; padding-bottom: 6px; border-bottom: 1px solid #1e2d33;");
-    cLayout->addWidget(thrustTitle);
+    // Header
+    auto *sectionLabel = new QLabel("DIAGNOSTICS");
+    sectionLabel->setStyleSheet("font-size: 9px; font-weight: bold; color: #e61414; letter-spacing: 2px;");
+    layout->addWidget(sectionLabel);
 
-    auto addMetric = [&](const QString &name, const QString &val, const QString &color) {
+    // ═══ MASS BREAKDOWN ═══
+    auto *massTitle = new QLabel("MASS BREAKDOWN");
+    massTitle->setStyleSheet("font-size: 9px; font-weight: bold; color: #64748b; letter-spacing: 2px; padding-bottom: 4px; border-bottom: 1px solid #1e2d33;");
+    layout->addWidget(massTitle);
+
+    auto addMassRow = [&](const QString &name, QLabel **val) {
         auto *row = new QHBoxLayout();
-        auto *n = new QLabel(name);
-        n->setStyleSheet("font-size: 11px; font-weight: bold; color: #94a3b8;");
-        auto *v = new QLabel(val);
-        v->setStyleSheet(QString("font-size: 13px; font-weight: bold; color: %1; font-family: Consolas, monospace;").arg(color));
-        row->addWidget(n);
-        row->addStretch();
-        row->addWidget(v);
-        cLayout->addLayout(row);
+        auto *n = new QLabel(name); n->setStyleSheet("font-size: 10px; color: #94a3b8;");
+        *val = new QLabel("0g"); (*val)->setStyleSheet("font-size: 10px; color: #64748b; font-family: Consolas;");
+        row->addWidget(n); row->addStretch(); row->addWidget(*val);
+        layout->addLayout(row);
     };
+    addMassRow("Frame", &m_massFrame);
+    addMassRow("Motors", &m_massMotors);
+    addMassRow("Battery", &m_massBattery);
+    addMassRow("Other", &m_massOther);
 
-    addMetric("Hover Throttle", "32% Optimal", "#10b981");
-    addMetric("Thrust Margin", "4:1 Optimal", "#10b981");
-    addMetric("Max peak", "48.2kg", "#e2e8f0");
-    addMetric("Thermal Prediction", "82°C Warning", "#e61414");
+    auto *sep1 = new QFrame(); sep1->setFrameShape(QFrame::HLine); sep1->setStyleSheet("color: #1e2d33;");
+    layout->addWidget(sep1);
 
-    // Warning box
-    auto *warnBox = new QLabel("Possible ESC throttling predicted in high-load maneuvers.");
-    warnBox->setWordWrap(true);
-    warnBox->setStyleSheet("font-size: 9px; color: rgba(19,182,236,0.8); padding: 8px; background: rgba(240,66,66,0.05); border: 1px solid rgba(19,182,236,0.2); border-radius: 4px;");
-    cLayout->addWidget(warnBox);
+    { auto *row = new QHBoxLayout();
+      auto *n = new QLabel("Total"); n->setStyleSheet("font-size: 11px; color: #f1f5f9; font-weight: bold;");
+      m_massTotal = new QLabel("0g"); m_massTotal->setStyleSheet("font-size: 12px; color: #f1f5f9; font-weight: bold; font-family: Consolas;");
+      row->addWidget(n); row->addStretch(); row->addWidget(m_massTotal); layout->addLayout(row); }
 
-    // Stability Index
-    auto *stabRow = new QHBoxLayout();
-    auto *stabLabel = new QLabel("Stability Index");
-    stabLabel->setStyleSheet("font-size: 11px; font-weight: bold; color: #94a3b8;");
-    auto *stabVal = new QLabel("9.2/10 Stable");
-    stabVal->setStyleSheet("font-size: 13px; font-weight: bold; color: #e61414; font-family: Consolas, monospace;");
-    stabRow->addWidget(stabLabel);
-    stabRow->addStretch();
-    stabRow->addWidget(stabVal);
-    cLayout->addLayout(stabRow);
+    { auto *row = new QHBoxLayout();
+      auto *n = new QLabel("Payload Left"); n->setStyleSheet("font-size: 10px; color: #94a3b8;");
+      m_payloadRemaining = new QLabel("--"); m_payloadRemaining->setStyleSheet("font-size: 10px; color: #64748b; font-family: Consolas;");
+      row->addWidget(n); row->addStretch(); row->addWidget(m_payloadRemaining); layout->addLayout(row); }
 
-    // System Health Section
+    // ═══ THRUST DYNAMICS ═══
+    auto *thrustTitle = new QLabel("THRUST DYNAMICS");
+    thrustTitle->setStyleSheet("font-size: 9px; font-weight: bold; color: #64748b; letter-spacing: 2px; padding-bottom: 4px; border-bottom: 1px solid #1e2d33; margin-top: 6px;");
+    layout->addWidget(thrustTitle);
+
+    auto addMetric = [&](const QString &name, QLabel **val, const QString &init = "--") {
+        auto *row = new QHBoxLayout();
+        auto *n = new QLabel(name); n->setStyleSheet("font-size: 10px; color: #94a3b8;");
+        *val = new QLabel(init); (*val)->setStyleSheet("font-size: 12px; font-weight: bold; color: #64748b; font-family: Consolas;");
+        row->addWidget(n); row->addStretch(); row->addWidget(*val);
+        layout->addLayout(row);
+    };
+    addMetric("Hover Throttle", &m_hoverThrottle);
+    addMetric("T/W Ratio", &m_thrustMargin);
+    addMetric("Max Thrust", &m_maxThrust, "0g");
+    addMetric("Stability", &m_stabIndex);
+
+    // ═══ SYSTEM HEALTH ═══
     auto *healthTitle = new QLabel("SYSTEM HEALTH");
-    healthTitle->setStyleSheet("font-size: 10px; font-weight: bold; color: #64748b; letter-spacing: 2px; padding-bottom: 6px; border-bottom: 1px solid #1e2d33; margin-top: 8px;");
-    cLayout->addWidget(healthTitle);
+    healthTitle->setStyleSheet("font-size: 9px; font-weight: bold; color: #64748b; letter-spacing: 2px; padding-bottom: 4px; border-bottom: 1px solid #1e2d33; margin-top: 6px;");
+    layout->addWidget(healthTitle);
 
     auto *healthGrid = new QGridLayout();
-    
     auto makeHealthBox = [](const QString &label, const QString &value, const QString &color) {
         auto *box = new QWidget();
-        box->setStyleSheet(QString("border: 1px solid %1; background: rgba(%2, 0.05); border-radius: 4px; padding: 8px;")
-            .arg(color).arg(color == "#10b981" ? "16,185,129" : "19,182,236"));
-        auto *l = new QVBoxLayout(box);
-        l->setAlignment(Qt::AlignCenter);
-        auto *lbl = new QLabel(label);
-        lbl->setAlignment(Qt::AlignCenter);
-        lbl->setStyleSheet("font-size: 9px; color: #64748b; font-weight: bold; letter-spacing: 2px; border: none;");
-        auto *val = new QLabel(value);
-        val->setAlignment(Qt::AlignCenter);
-        val->setStyleSheet(QString("font-size: 18px; font-weight: bold; color: %1; font-family: Consolas, monospace; border: none;").arg(color));
-        l->addWidget(lbl);
-        l->addWidget(val);
+        box->setStyleSheet(QString("border: 1px solid %1; background: rgba(%2, 0.05); border-radius: 4px; padding: 6px;")
+            .arg(color).arg(color == "#10b981" ? "16,185,129" : "100,116,139"));
+        auto *l = new QVBoxLayout(box); l->setAlignment(Qt::AlignCenter);
+        auto *lbl = new QLabel(label); lbl->setAlignment(Qt::AlignCenter);
+        lbl->setStyleSheet("font-size: 8px; color: #64748b; font-weight: bold; letter-spacing: 1px; border: none;");
+        auto *val = new QLabel(value); val->setAlignment(Qt::AlignCenter);
+        val->setStyleSheet(QString("font-size: 16px; font-weight: bold; color: %1; font-family: Consolas; border: none;").arg(color));
+        l->addWidget(lbl); l->addWidget(val);
         return box;
     };
+    healthGrid->addWidget(makeHealthBox("LINK", "--", "#64748b"), 0, 0);
+    healthGrid->addWidget(makeHealthBox("VIBES", "--", "#64748b"), 0, 1);
+    layout->addLayout(healthGrid);
 
-    healthGrid->addWidget(makeHealthBox("LINK QUAL", "98%", "#10b981"), 0, 0);
-    healthGrid->addWidget(makeHealthBox("VIBES", "LOW", "#e61414"), 0, 1);
-    cLayout->addLayout(healthGrid);
-
-    // Validation Console
+    // ═══ VALIDATION CONSOLE ═══
     auto *consoleTitle = new QLabel("VALIDATION CONSOLE");
-    consoleTitle->setStyleSheet("font-size: 10px; font-weight: bold; color: #64748b; letter-spacing: 2px; padding-bottom: 6px; border-bottom: 1px solid #1e2d33; margin-top: 8px;");
-    cLayout->addWidget(consoleTitle);
+    consoleTitle->setStyleSheet("font-size: 9px; font-weight: bold; color: #64748b; letter-spacing: 2px; padding-bottom: 4px; border-bottom: 1px solid #1e2d33; margin-top: 6px;");
+    layout->addWidget(consoleTitle);
 
-    auto *console = new QTextEdit();
-    console->setReadOnly(true);
-    console->setFixedHeight(120);
-    console->setStyleSheet("background: #0a0f12; border: 1px solid #1e2d33; border-radius: 4px; font-family: Consolas, monospace; font-size: 9px; padding: 8px; color: #94a3b8;");
+    m_console = new QTextEdit();
+    m_console->setReadOnly(true);
+    m_console->setFixedHeight(110);
+    m_console->setStyleSheet("background: #0a0f12; border: 1px solid #1e2d33; border-radius: 4px; font-family: Consolas; font-size: 9px; padding: 6px; color: #94a3b8;");
+    m_console->append("<span style='color:#64748b'>[--:--:--] Waiting for components...</span>");
+    layout->addWidget(m_console);
 
-    console->append("<span style='color:#94a3b8'>[12:44:01] Inertia tensor recalculated</span>");
-    console->append("<span style='color:#94a3b8'>[12:44:02] CG offset: +1.2mm</span>");
-    console->append("<span style='color:#94a3b8'>[12:44:05] Static thrust testing complete</span>");
-    console->append("<span style='color:#e61414'><b>[12:44:10] ERROR: ESC 3 heat soak alert</b></span>");
-    console->append("<span style='color:#94a3b8'>[12:44:12] Monitoring thermals...</span>");
+    layout->addStretch();
+    scroll->setWidget(content);
+    outerLayout->addWidget(scroll);
+}
 
-    cLayout->addWidget(console);
-    cLayout->addStretch();
+void DiagPanel::refreshUI()
+{
+    if (!m_assembly) return;
 
-    layout->addWidget(content, 1);
+    float totalMass = m_assembly->getTotalMass();
+    float totalThrust = m_assembly->getTotalThrust();
+    float twr = m_assembly->getThrustToWeightRatio();
+
+    // ── Mass breakdown ──
+    float frameMass = 0, motorMass = 0, batteryMass = 0, otherMass = 0;
+    auto frame = m_assembly->getFrame();
+    if (frame) frameMass = frame->getMassGraph();
+
+    for (const auto &n : m_assembly->getSnapNodes()) {
+        if (!n.attachedComponent) continue;
+        auto c = n.attachedComponent;
+        switch (c->getType()) {
+            case ComponentType::Motor: motorMass += c->getMassGraph(); break;
+            case ComponentType::Battery: batteryMass += c->getMassGraph(); break;
+            default: otherMass += c->getMassGraph(); break;
+        }
+    }
+
+    auto active = "font-size: 10px; color: #e2e8f0; font-family: Consolas;";
+    auto dim = "font-size: 10px; color: #64748b; font-family: Consolas;";
+    m_massFrame->setText(QString("%1g").arg(frameMass, 0, 'f', 1)); m_massFrame->setStyleSheet(frameMass > 0 ? active : dim);
+    m_massMotors->setText(QString("%1g").arg(motorMass, 0, 'f', 1)); m_massMotors->setStyleSheet(motorMass > 0 ? active : dim);
+    m_massBattery->setText(QString("%1g").arg(batteryMass, 0, 'f', 1)); m_massBattery->setStyleSheet(batteryMass > 0 ? active : dim);
+    m_massOther->setText(QString("%1g").arg(otherMass, 0, 'f', 1)); m_massOther->setStyleSheet(otherMass > 0 ? active : dim);
+    m_massTotal->setText(QString("%1g").arg(totalMass, 0, 'f', 1));
+
+    if (twr > 0) {
+        float mp = totalThrust - totalMass;
+        m_payloadRemaining->setText(QString("%1g").arg(mp > 0 ? mp : 0, 0, 'f', 0));
+        m_payloadRemaining->setStyleSheet("font-size: 10px; color: #10b981; font-family: Consolas;");
+    } else {
+        m_payloadRemaining->setText("--");
+        m_payloadRemaining->setStyleSheet(dim);
+    }
+
+    // ── Thrust ──
+    m_maxThrust->setText(QString("%1g").arg(totalThrust, 0, 'f', 0));
+    m_maxThrust->setStyleSheet(totalThrust > 0
+        ? "font-size: 12px; font-weight: bold; color: #e2e8f0; font-family: Consolas;"
+        : "font-size: 12px; font-weight: bold; color: #64748b; font-family: Consolas;");
+
+    if (twr > 0) {
+        QString status = twr >= 2.0f ? "Optimal" : (twr >= 1.0f ? "Marginal" : "CRITICAL");
+        QString color = twr >= 2.0f ? "#10b981" : (twr >= 1.0f ? "#f97316" : "#ef4444");
+        m_thrustMargin->setText(QString("%1:1 %2").arg(twr, 0, 'f', 1).arg(status));
+        m_thrustMargin->setStyleSheet(QString("font-size: 12px; font-weight: bold; color: %1; font-family: Consolas;").arg(color));
+
+        float hoverPct = (1.0f / twr) * 100.0f;
+        QString hStatus = hoverPct < 50.0f ? "Optimal" : (hoverPct < 80.0f ? "High" : "DANGER");
+        QString hColor = hoverPct < 50.0f ? "#10b981" : (hoverPct < 80.0f ? "#f97316" : "#ef4444");
+        m_hoverThrottle->setText(QString("%1% %2").arg(hoverPct, 0, 'f', 0).arg(hStatus));
+        m_hoverThrottle->setStyleSheet(QString("font-size: 12px; font-weight: bold; color: %1; font-family: Consolas;").arg(hColor));
+    } else {
+        m_thrustMargin->setText("--");
+        m_thrustMargin->setStyleSheet("font-size: 12px; font-weight: bold; color: #64748b; font-family: Consolas;");
+        m_hoverThrottle->setText("--");
+        m_hoverThrottle->setStyleSheet("font-size: 12px; font-weight: bold; color: #64748b; font-family: Consolas;");
+    }
+
+    // Stability
+    auto cg = m_assembly->getCenterOfGravity();
+    float cgOffset = sqrtf(cg.x * cg.x + cg.z * cg.z);
+    if (totalMass > 0) {
+        float score = fmax(0.0f, 10.0f - cgOffset * 5.0f);
+        QString color = score >= 7.0f ? "#10b981" : (score >= 4.0f ? "#f97316" : "#ef4444");
+        m_stabIndex->setText(QString("%1/10").arg(score, 0, 'f', 1));
+        m_stabIndex->setStyleSheet(QString("font-size: 12px; font-weight: bold; color: %1; font-family: Consolas;").arg(color));
+    } else {
+        m_stabIndex->setText("--");
+        m_stabIndex->setStyleSheet("font-size: 12px; font-weight: bold; color: #64748b; font-family: Consolas;");
+    }
+
+    // Console
+    m_console->clear();
+    if (totalMass > 0) {
+        m_console->append(QString("<span style='color:#94a3b8'>[SYS] Mass: %1g  Thrust: %2g  T/W: %3:1</span>")
+            .arg(totalMass, 0, 'f', 1).arg(totalThrust, 0, 'f', 0).arg(twr, 0, 'f', 2));
+        m_console->append(QString("<span style='color:#94a3b8'>[SYS] CG: (%1, %2, %3)</span>")
+            .arg(cg.x, 0, 'f', 3).arg(cg.y, 0, 'f', 3).arg(cg.z, 0, 'f', 3));
+        if (twr < 1.0f && totalThrust > 0)
+            m_console->append("<span style='color:#ef4444'><b>[ERROR] Thrust insufficient!</b></span>");
+        if (cgOffset > 0.5f)
+            m_console->append("<span style='color:#f97316'><b>[WARN] CG off-center</b></span>");
+    } else {
+        m_console->append("<span style='color:#64748b'>[--:--:--] Waiting for components...</span>");
+    }
 }

@@ -1,0 +1,16 @@
+D:\Silvu-viewfinder\cpp\build\SilvuViewfinder_autogen\mocs_compilation_Debug.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\mocs_compilation_Debug.obj
+D:\Silvu-viewfinder\cpp\src\main.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\main.obj
+D:\Silvu-viewfinder\cpp\src\MainWindow.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\MainWindow.obj
+D:\Silvu-viewfinder\cpp\src\ViewportWidget.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\ViewportWidget.obj
+D:\Silvu-viewfinder\cpp\src\panels\BuildPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\BuildPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\DiagPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\DiagPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\ConfigPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\ConfigPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\ProtocolPanel.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\ProtocolPanel.obj
+D:\Silvu-viewfinder\cpp\src\panels\TelemetryBar.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\TelemetryBar.obj
+D:\Silvu-viewfinder\cpp\src\panels\ToolRibbon.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\ToolRibbon.obj
+D:\Silvu-viewfinder\cpp\src\physics\PhysicsEngine.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\PhysicsEngine.obj
+D:\Silvu-viewfinder\cpp\src\data\DroneComponent.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\DroneComponent.obj
+D:\Silvu-viewfinder\cpp\src\data\DroneAssembly.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\DroneAssembly.obj
+D:\Silvu-viewfinder\cpp\src\data\ComponentRegistry.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\ComponentRegistry.obj
+D:\Silvu-viewfinder\cpp\src\dialogs\ComponentCatalog.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\ComponentCatalog.obj
+D:\Silvu-viewfinder\cpp\build\SilvuViewfinder_autogen\3YJK5W5UP7_Debug\qrc_resources.cpp;D:\Silvu-viewfinder\cpp\build\SilvuViewfinder.dir\Debug\SilvuViewfinder_autogen\3YJK5W5UP7_Debug\qrc_resources.cpp.obj

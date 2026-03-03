@@ -28,7 +28,22 @@
     <ClCompile Include="D:\Silvu-viewfinder\cpp\src\panels\TelemetryBar.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\panels\ToolRibbon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="D:\Silvu-viewfinder\cpp\src\physics\PhysicsEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\data\DroneComponent.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\data\DroneAssembly.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\data\ComponentRegistry.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\dialogs\ComponentCatalog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="D:\Silvu-viewfinder\cpp\build\SilvuViewfinder_autogen\3YJK5W5UP7_Debug\qrc_resources.cpp">
@@ -75,7 +90,22 @@
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\panels\TelemetryBar.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\panels\ToolRibbon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\physics\PhysicsEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\data\DroneComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\data\DroneAssembly.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\data\ComponentRegistry.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\dialogs\ComponentCatalog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

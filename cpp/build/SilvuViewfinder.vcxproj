@@ -582,7 +582,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="D:\Silvu-viewfinder\cpp\src\panels\ConfigPanel.cpp" />
     <ClCompile Include="D:\Silvu-viewfinder\cpp\src\panels\ProtocolPanel.cpp" />
     <ClCompile Include="D:\Silvu-viewfinder\cpp\src\panels\TelemetryBar.cpp" />
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\panels\ToolRibbon.cpp" />
     <ClCompile Include="D:\Silvu-viewfinder\cpp\src\physics\PhysicsEngine.cpp" />
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\data\DroneComponent.cpp" />
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\data\DroneAssembly.cpp" />
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\data\ComponentRegistry.cpp" />
+    <ClCompile Include="D:\Silvu-viewfinder\cpp\src\dialogs\ComponentCatalog.cpp" />
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\MainWindow.h" />
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\ViewportWidget.h" />
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\panels\BuildPanel.h" />
@@ -590,7 +595,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\panels\ConfigPanel.h" />
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\panels\ProtocolPanel.h" />
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\panels\TelemetryBar.h" />
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\panels\ToolRibbon.h" />
     <ClInclude Include="D:\Silvu-viewfinder\cpp\src\physics\PhysicsEngine.h" />
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\data\DroneComponent.h" />
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\data\DroneAssembly.h" />
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\data\ComponentRegistry.h" />
+    <ClInclude Include="D:\Silvu-viewfinder\cpp\src\dialogs\ComponentCatalog.h" />
     <None Include="D:\Silvu-viewfinder\cpp\resources\resources.qrc">
     </None>
     <ClCompile Include="D:\Silvu-viewfinder\cpp\build\SilvuViewfinder_autogen\3YJK5W5UP7_Debug\qrc_resources.cpp">

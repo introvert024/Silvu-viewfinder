@@ -7,12 +7,15 @@
 #include <QDockWidget>
 #include <QLabel>
 
+#include "data/DroneAssembly.h"
+
 class ViewportWidget;
 class BuildPanel;
 class DiagPanel;
 class ConfigPanel;
 class ProtocolPanel;
 class TelemetryBar;
+class ToolRibbon;
 
 class MainWindow : public QMainWindow
 {
@@ -24,6 +27,7 @@ public:
 
 private slots:
     void onTabChanged(int index);
+    void onAssemblyChanged();
 
 private:
     void createMenuBar();
@@ -35,12 +39,16 @@ private:
     QTabWidget *m_tabBar = nullptr;
     QStackedWidget *m_stack = nullptr;
 
+    // Shared assembly
+    DroneAssembly m_assembly;
+
     // Build mode widgets
     QWidget *m_buildPage = nullptr;
     ViewportWidget *m_viewport = nullptr;
     BuildPanel *m_buildPanel = nullptr;
     DiagPanel *m_diagPanel = nullptr;
     TelemetryBar *m_telemetryBar = nullptr;
+    ToolRibbon *m_toolRibbon = nullptr;
 
     // Other mode pages
     ConfigPanel *m_configPage = nullptr;

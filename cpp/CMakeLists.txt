@@ -23,7 +23,12 @@ set(SOURCES
     src/panels/ConfigPanel.cpp
     src/panels/ProtocolPanel.cpp
     src/panels/TelemetryBar.cpp
+    src/panels/ToolRibbon.cpp
     src/physics/PhysicsEngine.cpp
+    src/data/DroneComponent.cpp
+    src/data/DroneAssembly.cpp
+    src/data/ComponentRegistry.cpp
+    src/dialogs/ComponentCatalog.cpp
 )
 
 set(HEADERS
@@ -34,7 +39,12 @@ set(HEADERS
     src/panels/ConfigPanel.h
     src/panels/ProtocolPanel.h
     src/panels/TelemetryBar.h
+    src/panels/ToolRibbon.h
     src/physics/PhysicsEngine.h
+    src/data/DroneComponent.h
+    src/data/DroneAssembly.h
+    src/data/ComponentRegistry.h
+    src/dialogs/ComponentCatalog.h
 )
 
 # Resources
