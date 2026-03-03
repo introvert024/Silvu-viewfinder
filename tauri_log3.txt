@@ -1,0 +1,11 @@
+
+> temp-app@0.0.0 tauri
+> tauri dev
+
+     Running BeforeDevCommand (`npm run devnpm run dev`)
+npm error Missing script: "devnpm"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: C:\Users\krish\AppData\Local\npm-cache\_logs\2026-03-03T07_56_06_212Z-debug-0.log
+       Error The "beforeDevCommand" terminated with a non-zero status code.

@@ -1,0 +1,23 @@
+
+> temp-app@0.0.0 tauri
+> tauri dev
+
+     Running BeforeDevCommand (`npm run dev`)
+
+> temp-app@0.0.0 dev
+> vite
+
+[2m1:37:01 pm[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m Re-optimizing dependencies because lockfile has changed
+
+  [32m[1mVITE[22m v7.3.1[39m  [2mready in [0m[1m1173[22m[2m[0m ms[22m
+
+  [32mΓ₧£[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32mΓ₧£[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+     Running DevCommand (`cargo  run --no-default-features --color always --`)
+        Info Watching D:\Silvu-viewfinder\src-tauri for changes...
+   Compiling app v0.1.0 (D:\Silvu-viewfinder\src-tauri)
+    Building [=======================> ] 400/402: app     
+    Building [=======================> ] 401/402: app(bin)
+                                                            
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 16.17s
+     Running `target\debug\app.exe`
